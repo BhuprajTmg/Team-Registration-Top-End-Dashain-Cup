@@ -1,15 +1,16 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Gurkhali FC | Dashain Cup 2026 — Team Registration</title>
-<meta name="description" content="Register your team for the Gurkhali FC Dashain Cup 2026 — open 7-a-side football competition. No login required." />
-<link rel="icon" type="image/webp" href="assets/img/logo.webp" />
+<title>Gurkhali FC | {{ tournament }} — Team Registration</title>
+<meta name="description" content="Register your team for the Gurkhali FC {{ tournament }} — {{ division }}. No login required." />
+<link rel="icon" type="image/webp" href="{% static 'registration/img/logo.webp' %}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="{% static 'registration/css/style.css' %}" />
 </head>
 <body>
 
@@ -23,8 +24,8 @@
     <div class="container header-inner">
       <div class="brand">
         <picture>
-          <source srcset="assets/img/logo.webp" type="image/webp" />
-          <img src="assets/img/logo.png" alt="Gurkhali FC Crest" class="brand-logo" width="56" height="56" />
+          <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+          <img src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC Crest" class="brand-logo" width="56" height="56" />
         </picture>
         <div class="brand-text">
           <span class="brand-name">Gurkhali FC</span>
@@ -39,12 +40,12 @@
     <section class="hero">
       <div class="container hero-inner">
         <picture class="hero-crest">
-          <source srcset="assets/img/logo.webp" type="image/webp" />
-          <img src="assets/img/logo.png" alt="Gurkhali FC Crest" width="220" height="220" />
+          <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+          <img src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC Crest" width="220" height="220" />
         </picture>
         <p class="hero-eyebrow">Est. 2023 &mdash; Gurkhali FC Presents</p>
-        <h1 class="hero-title">Dashain Cup <span>2026</span></h1>
-        <p class="hero-subtitle">Open 7-a-side Football Competition</p>
+        <h1 class="hero-title">{{ tournament_title }} <span>{{ tournament_year }}</span></h1>
+        <p class="hero-subtitle">{{ division }}</p>
         <p class="hero-desc">
           Gather your squad and join the Top End's biggest Dashain football celebration.
           Registration is quick, free of login hassles, and open to every team &mdash;
@@ -68,7 +69,7 @@
         <div class="details-grid">
           <div class="detail-card">
             <div class="detail-icon">&#127942;</div>
-            <h3>Dashain Cup 2026</h3>
+            <h3>{{ tournament }}</h3>
             <p>Our annual community tournament celebrating Dashain, bringing Himalayan hearts and Top End spirits together on the pitch.</p>
           </div>
           <div class="detail-card">
@@ -102,10 +103,10 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <picture>
-        <source srcset="assets/img/logo.webp" type="image/webp" />
-        <img src="assets/img/logo.png" alt="Gurkhali FC Crest" class="footer-logo" width="40" height="40" />
+        <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+        <img src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC Crest" class="footer-logo" width="40" height="40" />
       </picture>
-      <p>&copy; <span id="year"></span> Gurkhali FC &mdash; Dashain Cup. Himalayan Hearts, Top End Spirits.</p>
+      <p>&copy; <span id="year"></span> Gurkhali FC &mdash; {{ tournament }}. Himalayan Hearts, Top End Spirits.</p>
     </div>
   </footer>
 
@@ -120,32 +121,33 @@
           <p>Complete every field below. Use a Gmail address so we can send your confirmation.</p>
         </div>
 
-        <form id="registrationForm" class="reg-form" novalidate>
+        <form id="registrationForm" class="reg-form" novalidate data-register-url="{% url 'registration:register' %}">
+          {% csrf_token %}
 
           <div class="field-row field-row--fixed">
             <div class="field fixed-field">
               <label>Tournament</label>
-              <div class="fixed-value">Dashain Cup 2026</div>
+              <div class="fixed-value">{{ tournament }}</div>
             </div>
             <div class="field fixed-field">
               <label>Division</label>
-              <div class="fixed-value">Open 7A-side football competition</div>
+              <div class="fixed-value">{{ division }}</div>
             </div>
           </div>
 
           <div class="field">
             <label for="teamName">Team Name <span class="req">*</span></label>
-            <input type="text" id="teamName" name="teamName" placeholder="Your team's name" required />
+            <input type="text" id="teamName" name="team_name" placeholder="Your team's name" required />
           </div>
 
           <div class="field-row">
             <div class="field">
               <label for="managerName">Manager / Coach Name <span class="req">*</span></label>
-              <input type="text" id="managerName" name="managerName" placeholder="Full name" required />
+              <input type="text" id="managerName" name="manager_name" placeholder="Full name" required />
             </div>
             <div class="field">
               <label for="homeCity">Home City / Suburb <span class="req">*</span></label>
-              <input type="text" id="homeCity" name="homeCity" placeholder="e.g. Darwin" required />
+              <input type="text" id="homeCity" name="home_city" placeholder="e.g. Darwin" required />
             </div>
           </div>
 
@@ -164,7 +166,7 @@
 
           <div class="field">
             <label for="squadSize">Number of Players</label>
-            <select id="squadSize" name="squadSize">
+            <select id="squadSize" name="squad_size">
               <option value="">Select squad size</option>
               <option value="7-9">7 &ndash; 9 players</option>
               <option value="10-12">10 &ndash; 12 players</option>
@@ -201,6 +203,6 @@
     </div>
   </div>
 
-  <script src="assets/js/script.js"></script>
+  <script src="{% static 'registration/js/script.js' %}"></script>
 </body>
 </html>

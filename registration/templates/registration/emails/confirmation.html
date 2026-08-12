@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#0f2050;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0f2050;padding:32px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#f5efe1;border-radius:16px;border:3px solid #e9b949;overflow:hidden;">
+          <tr>
+            <td style="background:#0f2050;padding:24px;text-align:center;">
+              <p style="margin:0;color:#e9b949;font-size:12px;letter-spacing:2px;text-transform:uppercase;">{{ club_name }}</p>
+              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;">Registration Confirmed</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 30px;color:#241c10;">
+              <p style="font-size:15px;line-height:1.6;">Kia ora {{ registration.manager_name }},</p>
+              <p style="font-size:15px;line-height:1.6;">
+                Thanks for registering <strong>&ldquo;{{ registration.team_name }}&rdquo;</strong> for the
+                <strong>{{ registration.tournament }}</strong> ({{ registration.division }}).
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse;">
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Team Name</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;font-weight:700;">{{ registration.team_name }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Manager / Coach</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.manager_name }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Home City / Suburb</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.home_city }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.phone }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Squad Size</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ squad_size_display }}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b6250;font-size:12px;text-transform:uppercase;vertical-align:top;">Experience</td><td style="padding:8px 0;text-align:right;">{{ experience_display }}</td></tr>
+              </table>
+
+              <p style="font-size:15px;line-height:1.6;">We'll be in touch with fixtures and further details closer to the tournament.</p>
+              <p style="font-size:14px;line-height:1.6;color:#6b6250;margin-top:24px;">Himalayan Hearts, Top End Spirits.<br/><strong>{{ club_name }}</strong></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

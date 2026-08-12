@@ -1,26 +1,11 @@
 /* =====================================================
    Gurkhali FC — Dashain Cup 2026 Team Registration
-   Front-end logic: modal control, validation, submission.
+   Front-end logic: modal control, validation, submission
+   to the Django backend (see registration/views.py).
    ===================================================== */
 
 (function () {
   "use strict";
-
-  /**
-   * CONFIG.SUBMIT_URL should be the "Web app URL" you get after deploying
-   * the included Google Apps Script (see /backend/Code.gs and the README)
-   * as a web app. That script runs under your tournament Gmail account and
-   * is what actually sends the confirmation + organizer notification emails.
-   *
-   * Until you deploy it, leave this as an empty string — the form will
-   * still validate and show a friendly "not configured yet" message
-   * instead of silently failing.
-   */
-  const CONFIG = {
-    SUBMIT_URL: "", // e.g. "https://script.google.com/macros/s/AKfycb.../exec"
-    TOURNAMENT: "Dashain Cup 2026",
-    DIVISION: "Open 7A-side football competition"
-  };
 
   const overlay = document.getElementById("modalOverlay");
   const openButtons = [document.getElementById("openFormBtn")].concat(
@@ -81,6 +66,15 @@
     submitBtn.classList.toggle("is-loading", isLoading);
   }
 
+  function getCsrfToken() {
+    const input = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input) return input.value;
+
+    // Fallback: read the csrftoken cookie directly.
+    const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : "";
+  }
+
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -100,36 +94,29 @@
     }
 
     const payload = {
-      tournament: CONFIG.TOURNAMENT,
-      division: CONFIG.DIVISION,
-      teamName: document.getElementById("teamName").value.trim(),
-      managerName: document.getElementById("managerName").value.trim(),
-      homeCity: document.getElementById("homeCity").value.trim(),
+      team_name: document.getElementById("teamName").value.trim(),
+      manager_name: document.getElementById("managerName").value.trim(),
+      home_city: document.getElementById("homeCity").value.trim(),
       phone: document.getElementById("phone").value.trim(),
       gmail: gmail,
-      squadSize: document.getElementById("squadSize").value,
+      squad_size: document.getElementById("squadSize").value,
       experience: document.getElementById("experience").value.trim(),
       notes: document.getElementById("notes").value.trim(),
-      submittedAt: new Date().toISOString()
+      agree: document.getElementById("agree").checked
     };
 
-    if (!CONFIG.SUBMIT_URL) {
-      setStatus(
-        "Registration form isn't connected to the email backend yet. See README.md \u2014 deploy the Apps Script and set SUBMIT_URL in assets/js/script.js.",
-        "error"
-      );
-      return;
-    }
+    const registerUrl = form.dataset.registerUrl;
 
     setLoading(true);
     setStatus("Submitting your registration\u2026", "info");
 
     try {
-      const response = await fetch(CONFIG.SUBMIT_URL, {
+      const response = await fetch(registerUrl, {
         method: "POST",
-        // text/plain avoids a CORS pre-flight request against Apps Script,
-        // which otherwise doesn't respond to OPTIONS requests.
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken()
+        },
         body: JSON.stringify(payload)
       });
 
@@ -137,15 +124,11 @@
       try {
         result = await response.json();
       } catch (_) {
-        // Some deployments may not echo JSON back; treat any 200 as success.
         result = { status: response.ok ? "ok" : "error" };
       }
 
       if (response.ok && result.status !== "error") {
-        setStatus(
-          `Thanks, ${payload.teamName}! Your registration is in. A confirmation has been sent to ${payload.gmail}.`,
-          "success"
-        );
+        setStatus(result.message || `Thanks, ${payload.team_name}! Your registration is in.`, "success");
         form.reset();
         form.querySelectorAll(".touched").forEach((f) => f.classList.remove("touched"));
         setTimeout(closeModal, 3200);
