@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gurkhali FC | Dashain Cup 2026 — Team Registration</title>
+<meta name="description" content="Register your team for the Gurkhali FC Dashain Cup 2026 — open 7-a-side football competition. No login required." />
+<link rel="icon" type="image/webp" href="assets/img/logo.webp" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <div class="bg-decor" aria-hidden="true">
+    <div class="bg-flag bg-flag--left"></div>
+    <div class="bg-flag bg-flag--right"></div>
+    <div class="bg-peaks"></div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <picture>
+          <source srcset="assets/img/logo.webp" type="image/webp" />
+          <img src="assets/img/logo.png" alt="Gurkhali FC Crest" class="brand-logo" width="56" height="56" />
+        </picture>
+        <div class="brand-text">
+          <span class="brand-name">Gurkhali FC</span>
+          <span class="brand-tag">Himalayan Hearts &bull; Top End Spirits</span>
+        </div>
+      </div>
+      <a href="#register" class="btn btn-header">Register Your Team</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <picture class="hero-crest">
+          <source srcset="assets/img/logo.webp" type="image/webp" />
+          <img src="assets/img/logo.png" alt="Gurkhali FC Crest" width="220" height="220" />
+        </picture>
+        <p class="hero-eyebrow">Est. 2023 &mdash; Gurkhali FC Presents</p>
+        <h1 class="hero-title">Dashain Cup <span>2026</span></h1>
+        <p class="hero-subtitle">Open 7-a-side Football Competition</p>
+        <p class="hero-desc">
+          Gather your squad and join the Top End's biggest Dashain football celebration.
+          Registration is quick, free of login hassles, and open to every team &mdash;
+          just fill in your details and you're in the draw.
+        </p>
+        <div class="hero-actions">
+          <a href="#register" class="btn btn-primary">Register Your Team</a>
+          <a href="#details" class="btn btn-ghost">Tournament Details</a>
+        </div>
+        <ul class="hero-stats">
+          <li><strong>7-a-side</strong><span>Format</span></li>
+          <li><strong>Open</strong><span>Division</span></li>
+          <li><strong>No Login</strong><span>Required</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="details" class="details">
+      <div class="container">
+        <h2 class="section-title">Tournament Details</h2>
+        <div class="details-grid">
+          <div class="detail-card">
+            <div class="detail-icon">&#127942;</div>
+            <h3>Dashain Cup 2026</h3>
+            <p>Our annual community tournament celebrating Dashain, bringing Himalayan hearts and Top End spirits together on the pitch.</p>
+          </div>
+          <div class="detail-card">
+            <div class="detail-icon">&#9917;</div>
+            <h3>Open 7A-Side</h3>
+            <p>A fast-paced, inclusive division open to all clubs and social teams across the region.</p>
+          </div>
+          <div class="detail-card">
+            <div class="detail-icon">&#128231;</div>
+            <h3>Instant Confirmation</h3>
+            <p>Submit your registration and receive an email confirmation straight to your team's Gmail &mdash; no account needed.</p>
+          </div>
+          <div class="detail-card">
+            <div class="detail-icon">&#128100;</div>
+            <h3>Any Manager, Any City</h3>
+            <p>Register from anywhere in the Top End &mdash; just bring your team name, coach, and squad spirit.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="register" class="register-cta">
+      <div class="container register-cta-inner">
+        <h2 class="section-title section-title--light">Ready to Compete?</h2>
+        <p>Complete the registration form below. It only takes a couple of minutes.</p>
+        <button class="btn btn-primary btn-lg" id="openFormBtn" type="button">Open Registration Form</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <picture>
+        <source srcset="assets/img/logo.webp" type="image/webp" />
+        <img src="assets/img/logo.png" alt="Gurkhali FC Crest" class="footer-logo" width="40" height="40" />
+      </picture>
+      <p>&copy; <span id="year"></span> Gurkhali FC &mdash; Dashain Cup. Himalayan Hearts, Top End Spirits.</p>
+    </div>
+  </footer>
+
+  <!-- Registration Modal -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" id="modalClose" type="button" aria-label="Close registration form">&times;</button>
+
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <h2 id="modalTitle">Register Your Team</h2>
+          <p>Complete every field below. Use a Gmail address so we can send your confirmation.</p>
+        </div>
+
+        <form id="registrationForm" class="reg-form" novalidate>
+
+          <div class="field-row field-row--fixed">
+            <div class="field fixed-field">
+              <label>Tournament</label>
+              <div class="fixed-value">Dashain Cup 2026</div>
+            </div>
+            <div class="field fixed-field">
+              <label>Division</label>
+              <div class="fixed-value">Open 7A-side football competition</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="teamName">Team Name <span class="req">*</span></label>
+            <input type="text" id="teamName" name="teamName" placeholder="Your team's name" required />
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="managerName">Manager / Coach Name <span class="req">*</span></label>
+              <input type="text" id="managerName" name="managerName" placeholder="Full name" required />
+            </div>
+            <div class="field">
+              <label for="homeCity">Home City / Suburb <span class="req">*</span></label>
+              <input type="text" id="homeCity" name="homeCity" placeholder="e.g. Darwin" required />
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="phone">Phone <span class="req">*</span></label>
+              <input type="tel" id="phone" name="phone" placeholder="e.g. 0400 000 000" required />
+            </div>
+            <div class="field">
+              <label for="gmail">Gmail <span class="req">*</span></label>
+              <input type="email" id="gmail" name="gmail" placeholder="yourteam@gmail.com" required
+                pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$"
+                title="Please enter a valid Gmail address (must end with @gmail.com)" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="squadSize">Number of Players</label>
+            <select id="squadSize" name="squadSize">
+              <option value="">Select squad size</option>
+              <option value="7-9">7 &ndash; 9 players</option>
+              <option value="10-12">10 &ndash; 12 players</option>
+              <option value="13-15">13 &ndash; 15 players</option>
+              <option value="16+">16+ players</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="experience">Previous Tournament Experience <span class="req">*</span></label>
+            <textarea id="experience" name="experience" rows="3" placeholder="List previous tournaments or write N/A" required></textarea>
+          </div>
+
+          <div class="field">
+            <label for="notes">Notes <span class="req">*</span></label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Anything else we should know? Write N/A if none" required></textarea>
+          </div>
+
+          <label class="checkbox-field">
+            <input type="checkbox" id="agree" name="agree" required />
+            <span>I confirm the details above are accurate and I agree to the tournament rules and code of conduct. <span class="req">*</span></span>
+          </label>
+
+          <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+              <span class="btn-label">Submit Registration</span>
+              <span class="btn-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/script.js"></script>
+</body>
+</html>
