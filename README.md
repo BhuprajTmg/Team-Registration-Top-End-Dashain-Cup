@@ -90,12 +90,46 @@ paid email service required.
 Gmail's free sending limit is ~500 emails/day (2,000/day on Google
 Workspace), which is comfortably enough for tournament registrations.
 
-## 3. View & manage registrations
+## 3. View & manage registrations (admin panel)
 
-Every submission is stored in the `TeamRegistration` model and visible at
-`http://localhost:8000/admin/` → **Team registrations**. You can search,
-filter, and see whether the confirmation/notification emails were sent
-successfully for each team.
+Every submission is stored in the database and visible in the admin at
+`http://localhost:8000/admin/`.
+
+> **Where are my registered teams?** The admin *home* page only lists your
+> models — it never lists records, and the "Recent actions" box only logs
+> edits **you** make inside the admin, so it stays empty even when teams
+> have registered. Click **Team registrations** to see the actual list of
+> teams.
+
+The **Team registrations** page gives you:
+
+- **Summary cards** — teams registered, registered today, confirmation
+  emails sent, and emails not sent.
+- **Sortable table** — team name, manager/coach, home city, phone (click
+  to call), Gmail (click to email), squad size, whether the confirmation
+  email went out, and registration date/time.
+- **Search** — by team name, manager, city, phone, or Gmail.
+- **Filters** — tournament, division, squad size, email status, and
+  registration date, plus a year/month/day drill-down.
+- **Export selected registrations to CSV** — bulk action for spreadsheets.
+- **Resend confirmation email to selected teams** — bulk action to retry
+  emails that failed (e.g. registrations taken before you configured
+  Gmail).
+- **Grouped detail page** — each team's record is organised into
+  Tournament / Team / Contact / Additional information / Email status.
+
+If you ever want to double-check the data outside the admin:
+
+```bash
+python manage.py shell -c "from registration.models import TeamRegistration; print(TeamRegistration.objects.count())"
+```
+
+And to verify the whole registration pipeline (saving, validation, emails,
+admin listing) is working:
+
+```bash
+python manage.py test
+```
 
 ## 4. Deploying
 

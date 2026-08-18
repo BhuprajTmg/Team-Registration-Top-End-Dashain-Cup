@@ -8,11 +8,14 @@ and how to obtain a Gmail "app password" for sending auto-reply emails.
 """
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+RUNNING_TESTS = "test" in sys.argv
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -136,7 +139,14 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        # Hashed filenames give browsers cache-busting URLs, but they require
+        # `collectstatic` to have run first. The test suite doesn't run it, so
+        # fall back to plain compressed storage there.
+        "BACKEND": (
+            "whitenoise.storage.CompressedStaticFilesStorage"
+            if RUNNING_TESTS
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 

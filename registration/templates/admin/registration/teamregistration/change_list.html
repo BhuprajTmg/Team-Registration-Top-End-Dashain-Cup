@@ -1,0 +1,83 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+  {% if summary %}
+    <div class="reg-summary">
+      <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.total }}</span>
+        <span class="reg-summary-label">Teams registered</span>
+      </div>
+      <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.today }}</span>
+        <span class="reg-summary-label">Registered today</span>
+      </div>
+      <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.emails_sent }}</span>
+        <span class="reg-summary-label">Confirmation emails sent</span>
+      </div>
+      <div class="reg-summary-card{% if summary.emails_pending %} reg-summary-card--warn{% endif %}">
+        <span class="reg-summary-value">{{ summary.emails_pending }}</span>
+        <span class="reg-summary-label">Emails not sent</span>
+      </div>
+    </div>
+
+    {% if summary.total == 0 %}
+      <p class="reg-summary-hint">
+        No teams have registered yet. Submissions made through the registration form
+        appear here automatically — refresh this page after a team registers.
+      </p>
+    {% endif %}
+  {% endif %}
+
+  {{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .reg-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin: 0 0 18px;
+    }
+
+    .reg-summary-card {
+      background: var(--darkened-bg, #f8f8f8);
+      border: 1px solid var(--hairline-color, #e0e0e0);
+      border-left: 4px solid var(--primary, #0f2050);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .reg-summary-card--warn {
+      border-left-color: #c8102e;
+    }
+
+    .reg-summary-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--body-fg, #333);
+    }
+
+    .reg-summary-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--body-quiet-color, #666);
+    }
+
+    .reg-summary-hint {
+      background: var(--darkened-bg, #f8f8f8);
+      border: 1px solid var(--hairline-color, #e0e0e0);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 0 0 18px;
+      color: var(--body-quiet-color, #666);
+    }
+  </style>
+{% endblock %}
