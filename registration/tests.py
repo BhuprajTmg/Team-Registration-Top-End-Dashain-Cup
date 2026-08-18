@@ -1,9 +1,16 @@
 import json
+import os
+from smtplib import SMTPAuthenticationError
+from unittest import mock
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 from django.urls import reverse
+
+from dashain_cup.settings import env_bool, env_int, env_str
 
 from .models import TeamRegistration
 
@@ -73,7 +80,7 @@ class RegistrationEndpointTests(TestCase):
         ORGANISER_EMAIL="organiser@gmail.com",
     )
     def test_emails_are_sent_when_configured(self):
-        self.post_registration()
+        response = self.post_registration()
 
         self.assertEqual(len(mail.outbox), 2)
         recipients = {address for message in mail.outbox for address in message.to}
@@ -83,6 +90,64 @@ class RegistrationEndpointTests(TestCase):
         team = TeamRegistration.objects.get()
         self.assertTrue(team.confirmation_email_sent)
         self.assertTrue(team.organiser_notified)
+
+        body = response.json()
+        self.assertTrue(body["confirmation_email_sent"])
+        self.assertIn("confirmation has been sent", body["message"])
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        EMAIL_HOST_USER="organiser@gmail.com",
+        EMAIL_HOST_PASSWORD="wrong-password",
+        ORGANISER_EMAIL="organiser@gmail.com",
+    )
+    def test_failed_send_does_not_claim_the_email_was_sent(self):
+        """A wrong Gmail App Password must not produce a false success message."""
+        with mock.patch(
+            "django.core.mail.EmailMultiAlternatives.send",
+            side_effect=SMTPAuthenticationError(535, b"Username and Password not accepted"),
+        ):
+            response = self.post_registration()
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertFalse(body["confirmation_email_sent"])
+        self.assertNotIn("has been sent", body["message"])
+        self.assertIn("couldn't send your confirmation email", body["message"])
+
+        # The registration itself must still be saved and visible to organisers.
+        team = TeamRegistration.objects.get()
+        self.assertFalse(team.confirmation_email_sent)
+        self.assertFalse(team.organiser_notified)
+
+
+class EnvironmentParsingTests(TestCase):
+    """`.env.example` invites blank values, so blanks must fall back to defaults."""
+
+    def test_blank_string_falls_back_to_default(self):
+        with mock.patch.dict(os.environ, {"SOME_SETTING": ""}):
+            self.assertEqual(env_str("SOME_SETTING", "fallback"), "fallback")
+
+    def test_whitespace_is_stripped(self):
+        with mock.patch.dict(os.environ, {"SOME_SETTING": "  value  "}):
+            self.assertEqual(env_str("SOME_SETTING"), "value")
+
+    def test_blank_number_falls_back_instead_of_crashing(self):
+        with mock.patch.dict(os.environ, {"SOME_PORT": ""}):
+            self.assertEqual(env_int("SOME_PORT", 587), 587)
+
+    def test_invalid_number_raises_a_clear_error(self):
+        with mock.patch.dict(os.environ, {"SOME_PORT": "not-a-number"}):
+            with self.assertRaises(ImproperlyConfigured):
+                env_int("SOME_PORT", 587)
+
+    def test_blank_boolean_falls_back_to_default(self):
+        with mock.patch.dict(os.environ, {"SOME_FLAG": ""}):
+            self.assertTrue(env_bool("SOME_FLAG", default=True))
+
+    def test_app_password_spaces_are_stripped(self):
+        """Google displays App Passwords as 'abcd efgh ijkl mnop'."""
+        self.assertEqual(settings.EMAIL_HOST_PASSWORD, settings.EMAIL_HOST_PASSWORD.replace(" ", ""))
 
 
 class AdminTests(TestCase):

@@ -87,8 +87,37 @@ paid email service required.
      registered with, and
    - send a **notification email to `ORGANISER_EMAIL`**.
 
+6. Confirm it actually works before opening registrations to teams:
+
+   ```bash
+   python manage.py check_email your-own-address@gmail.com
+   ```
+
+   This prints the email configuration in use and sends one real test
+   email, reporting Gmail's exact error if something is wrong.
+
 Gmail's free sending limit is ~500 emails/day (2,000/day on Google
 Workspace), which is comfortably enough for tournament registrations.
+
+### Emails aren't arriving?
+
+Registrations are **always saved first**, so a team's entry is never lost
+because of an email problem — you'll still see them in the admin, and can
+use the *Resend confirmation email* action there once the setup is fixed.
+
+Run `python manage.py check_email <your-address@gmail.com>` first; it
+reports Gmail's exact error. The usual causes:
+
+| Symptom | Cause |
+| --- | --- |
+| `535 Username and Password not accepted` | `EMAIL_HOST_PASSWORD` is your normal Gmail password, not a 16-character App Password |
+| App Passwords page unavailable | 2-Step Verification isn't enabled on the account |
+| Emails print to the terminal instead of sending | `EMAIL_HOST_USER`/`EMAIL_HOST_PASSWORD` are blank, so the console backend is used |
+| Timeout / connection refused | Port 587 is blocked by your network or host — try `EMAIL_PORT=465` with `EMAIL_USE_TLS=False` and `EMAIL_USE_SSL=True` |
+| Confirmation arrived but organiser copy didn't | `ORGANISER_EMAIL` is unset or pointing elsewhere |
+
+The server log always records the real reason a send failed, and the
+registration form itself never claims an email was sent when it wasn't.
 
 ## 3. View & manage registrations (admin panel)
 

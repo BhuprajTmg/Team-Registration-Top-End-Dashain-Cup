@@ -64,16 +64,30 @@ class RegisterView(View):
         registration.organiser_notified = send_organiser_notification(registration)
         registration.save(update_fields=["confirmation_email_sent", "organiser_notified"])
 
-        if not email_is_configured():
+        if registration.confirmation_email_sent:
+            message = (
+                f"Thanks, {registration.team_name}! Your registration is in. A confirmation has "
+                f"been sent to {registration.gmail}."
+            )
+        elif not email_is_configured():
             message = (
                 f"Thanks, {registration.team_name}! Your registration was saved, but email "
                 "notifications aren't configured yet — see README.md to connect the tournament "
                 "Gmail account."
             )
         else:
+            # Saved, but Gmail rejected the send — never claim an email went out
+            # that didn't. The organiser gets the details from the admin instead.
             message = (
-                f"Thanks, {registration.team_name}! Your registration is in. A confirmation has "
-                f"been sent to {registration.gmail}."
+                f"Thanks, {registration.team_name}! Your registration is saved and safe, but we "
+                "couldn't send your confirmation email just now. The organisers can see your entry "
+                "and will be in touch."
             )
 
-        return JsonResponse({"status": "ok", "message": message})
+        return JsonResponse(
+            {
+                "status": "ok",
+                "message": message,
+                "confirmation_email_sent": registration.confirmation_email_sent,
+            }
+        )

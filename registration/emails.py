@@ -14,6 +14,14 @@ from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
+EMAIL_TROUBLESHOOTING_HINT = (
+    "Check that EMAIL_HOST_USER is the tournament's Gmail address and that "
+    "EMAIL_HOST_PASSWORD is a 16-character Gmail App Password (not the normal "
+    "account password), which requires 2-Step Verification to be enabled. "
+    "Run `python manage.py check_email <your-address@gmail.com>` to test the "
+    "setup directly."
+)
+
 
 def _display_context(registration):
     squad_size_display = (
@@ -58,8 +66,15 @@ def send_confirmation_email(registration) -> bool:
     try:
         message.send(fail_silently=False)
         return True
-    except Exception:
-        logger.exception("Failed to send confirmation email for %s", registration.team_name)
+    except Exception as exc:
+        logger.error(
+            "Failed to send the confirmation email for %s to %s: %s\n%s",
+            registration.team_name,
+            registration.gmail,
+            exc,
+            EMAIL_TROUBLESHOOTING_HINT,
+            exc_info=True,
+        )
         return False
 
 
@@ -88,6 +103,12 @@ def send_organiser_notification(registration) -> bool:
     try:
         message.send(fail_silently=False)
         return True
-    except Exception:
-        logger.exception("Failed to send organiser notification for %s", registration.team_name)
+    except Exception as exc:
+        logger.error(
+            "Failed to send the organiser notification for %s: %s\n%s",
+            registration.team_name,
+            exc,
+            EMAIL_TROUBLESHOOTING_HINT,
+            exc_info=True,
+        )
         return False
