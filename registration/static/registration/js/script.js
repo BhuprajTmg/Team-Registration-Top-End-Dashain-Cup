@@ -1,7 +1,8 @@
 /* =====================================================
    Gurkhali FC — Dashain Cup 2026 Team Registration
    Front-end logic: modal control, validation, submission
-   to the Django backend (see registration/views.py).
+   to the Django backend (see registration/views.py), and
+   a well-managed success/failure result popup.
    ===================================================== */
 
 (function () {
@@ -17,7 +18,16 @@
   const submitBtn = document.getElementById("submitBtn");
   const yearEl = document.getElementById("year");
 
+  const resultOverlay = document.getElementById("resultOverlay");
+  const resultCard = document.getElementById("resultCard");
+  const resultTitle = document.getElementById("resultTitle");
+  const resultMessage = document.getElementById("resultMessage");
+  const resultClose = document.getElementById("resultClose");
+  const resultAction = document.getElementById("resultAction");
+
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // ---------------- Registration form modal ----------------
 
   function openModal(e) {
     if (e) e.preventDefault();
@@ -31,7 +41,9 @@
   function closeModal() {
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    if (!resultOverlay.classList.contains("is-open")) {
+      document.body.style.overflow = "";
+    }
   }
 
   openButtons.forEach((btn) => {
@@ -44,8 +56,51 @@
     if (e.target === overlay) closeModal();
   });
 
+  // ---------------- Result popup (success / failure) ----------------
+
+  let resultReturnFocus = null;
+
+  function showResultPopup(type, title, message) {
+    resultOverlay.classList.remove("result-success", "result-error");
+    resultOverlay.classList.add(type === "success" ? "result-success" : "result-error");
+
+    resultTitle.textContent = title;
+    resultMessage.innerHTML = message;
+
+    resultReturnFocus = document.activeElement;
+
+    resultOverlay.classList.add("is-open");
+    resultOverlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
+    setTimeout(() => resultAction.focus(), 200);
+  }
+
+  function closeResultPopup() {
+    resultOverlay.classList.remove("is-open");
+    resultOverlay.setAttribute("aria-hidden", "true");
+
+    if (!overlay.classList.contains("is-open")) {
+      document.body.style.overflow = "";
+    }
+
+    if (resultReturnFocus && typeof resultReturnFocus.focus === "function") {
+      resultReturnFocus.focus();
+    }
+  }
+
+  resultClose.addEventListener("click", closeResultPopup);
+  resultAction.addEventListener("click", closeResultPopup);
+
+  resultOverlay.addEventListener("click", (e) => {
+    if (e.target === resultOverlay) closeResultPopup();
+  });
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && overlay.classList.contains("is-open")) {
+    if (e.key !== "Escape") return;
+    if (resultOverlay.classList.contains("is-open")) {
+      closeResultPopup();
+    } else if (overlay.classList.contains("is-open")) {
       closeModal();
     }
   });
@@ -93,8 +148,10 @@
       return;
     }
 
+    const teamName = document.getElementById("teamName").value.trim();
+
     const payload = {
-      team_name: document.getElementById("teamName").value.trim(),
+      team_name: teamName,
       manager_name: document.getElementById("managerName").value.trim(),
       home_city: document.getElementById("homeCity").value.trim(),
       phone: document.getElementById("phone").value.trim(),
@@ -128,17 +185,41 @@
       }
 
       if (response.ok && result.status !== "error") {
-        setStatus(result.message || `Thanks, ${payload.team_name}! Your registration is in.`, "success");
+        setStatus("", "");
         form.reset();
         form.querySelectorAll(".touched").forEach((f) => f.classList.remove("touched"));
-        setTimeout(closeModal, 3200);
+        closeModal();
+        showResultPopup(
+          "success",
+          "Registration Successful! \u{1F389}",
+          result.message ||
+            `Thanks, <strong>${escapeHtml(teamName)}</strong>! Your team is registered for the tournament. ` +
+              `A confirmation email is on its way to <strong>${escapeHtml(gmail)}</strong>.`
+        );
       } else {
-        setStatus(result.message || "Something went wrong submitting your registration. Please try again.", "error");
+        setStatus("", "");
+        showResultPopup(
+          "error",
+          "Registration Failed",
+          result.message ||
+            "Something went wrong submitting your registration. Please check your details and try again."
+        );
       }
     } catch (err) {
-      setStatus("Network error \u2014 please check your connection and try again.", "error");
+      setStatus("", "");
+      showResultPopup(
+        "error",
+        "Registration Failed",
+        "We couldn't reach the server \u2014 please check your internet connection and try again."
+      );
     } finally {
       setLoading(false);
     }
   });
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
+  }
 })();
