@@ -1,0 +1,44 @@
+# Render Blueprint — deploy the Dashain Cup registration site.
+# Dashboard: https://dashboard.render.com → New → Blueprint → connect this repo.
+#
+# Free setup:
+#   1. Create a free Postgres database at https://neon.tech (or Render Postgres).
+#   2. After the Blueprint creates the web service, set DATABASE_URL to your
+#      Postgres connection string in the Render dashboard (Environment tab).
+#   3. Set DJANGO_ALLOWED_HOSTS / DJANGO_CSRF_TRUSTED_ORIGINS / EMAIL_* as below.
+#   4. Create an admin user from the Render Shell:
+#        python manage.py createsuperuser
+
+services:
+  - type: web
+    name: dashain-cup
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn dashain_cup.wsgi:application --bind 0.0.0.0:$PORT"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: ORGANISER_EMAIL
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: CLUB_NAME
+        value: "Gurkhali FC"
+      - key: DJANGO_TIME_ZONE
+        value: "Australia/Darwin"

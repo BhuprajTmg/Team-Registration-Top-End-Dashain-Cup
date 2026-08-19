@@ -160,21 +160,84 @@ admin listing) is working:
 python manage.py test
 ```
 
-## 4. Deploying
+## 4. Deploying (Render — recommended)
 
-This is a standard Django app — deploy it anywhere that runs Python
-(Render, Railway, PythonAnywhere, Fly.io, a VPS, etc.). A quick checklist:
+This is the easiest free way to put the site on the public internet.
 
-- Set real environment variables (`DJANGO_SECRET_KEY`, `DJANGO_DEBUG=False`,
-  `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, and the `EMAIL_*`
-  variables) — see `.env.example` for the full list.
-- Switch to a production database if you expect heavy traffic (SQLite,
-  used by default, is fine for a single tournament's registrations).
-- Run `python manage.py collectstatic` — static files are served via
-  [WhiteNoise](https://whitenoise.readthedocs.io/), already wired up in
-  `settings.py`, so no separate static file host/CDN is required.
-- Run the app with a production server, e.g.
-  `gunicorn dashain_cup.wsgi:application`.
+### Step A — Free Postgres database (Neon)
+
+1. Go to https://neon.tech and create a free account.
+2. Create a project (any name, e.g. `dashain-cup`).
+3. Copy the **connection string** (looks like
+   `postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`).
+
+### Step B — Deploy the app on Render
+
+1. Push this repo to GitHub (already done if you're reading it here).
+2. Go to https://dashboard.render.com → **New** → **Web Service**.
+3. Connect the `Team-Registration-Top-End-Dashain-Cup` repository, branch `main`.
+4. Fill in:
+   - **Runtime:** Python
+   - **Build Command:** `./build.sh`
+   - **Start Command:** `gunicorn dashain_cup.wsgi:application --bind 0.0.0.0:$PORT`
+5. Under **Environment**, add these variables:
+
+| Key | Value |
+| --- | --- |
+| `DJANGO_DEBUG` | `False` |
+| `DJANGO_SECRET_KEY` | run `python -c "import secrets; print(secrets.token_urlsafe(50))"` and paste the result |
+| `DJANGO_ALLOWED_HOSTS` | `your-service-name.onrender.com` (use the hostname Render shows you) |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://your-service-name.onrender.com` |
+| `DATABASE_URL` | the Neon connection string from Step A |
+| `EMAIL_HOST_USER` | your tournament Gmail address |
+| `EMAIL_HOST_PASSWORD` | your 16-character Gmail App Password |
+| `ORGANISER_EMAIL` | where new-registration alerts should go |
+| `DEFAULT_FROM_EMAIL` | `Gurkhali FC <your-tournament-gmail@gmail.com>` |
+| `CLUB_NAME` | `Gurkhali FC` |
+| `DJANGO_TIME_ZONE` | `Australia/Darwin` |
+
+6. Click **Create Web Service** and wait for the first deploy to finish
+   (usually a few minutes). Your public URL will be
+   `https://your-service-name.onrender.com`.
+
+### Step C — Create the admin login
+
+1. In the Render dashboard, open your service → **Shell**.
+2. Run:
+
+```bash
+python manage.py createsuperuser
+```
+
+3. Visit `https://your-service-name.onrender.com/admin/` and log in.
+4. Test a registration on the public site, then confirm the team appears under
+   **Team registrations** and that confirmation emails arrive.
+
+### Step D — Confirm email works on the live server
+
+In the Render Shell:
+
+```bash
+python manage.py check_email your-own-address@gmail.com
+```
+
+### One-click alternative (Blueprint)
+
+This repo includes a `render.yaml`. On Render you can also choose
+**New → Blueprint**, select this repo, then fill in the `sync: false`
+environment variables (`DATABASE_URL`, `DJANGO_ALLOWED_HOSTS`,
+`DJANGO_CSRF_TRUSTED_ORIGINS`, and the `EMAIL_*` values) before the first
+deploy.
+
+### Important notes
+
+- Free Render web services **spin down after ~15 minutes of idle time**; the
+  first visit after that can take 30–60 seconds to wake up. That is normal
+  on the free plan.
+- Do **not** use the default SQLite file on Render without a paid disk —
+  it is wiped on every redeploy. Always set `DATABASE_URL` to Neon (or
+  another Postgres host).
+- Never commit your real `.env` file or App Password to GitHub.
 
 ## 5. Customising
 

@@ -12,6 +12,7 @@ import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -113,14 +114,17 @@ TEMPLATES = [
 WSGI_APPLICATION = "dashain_cup.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+# Local default is SQLite. On Render / Railway / similar hosts, set DATABASE_URL
+# to a Postgres connection string (Render provides this automatically when you
+# attach a Postgres database).
 
+_database_url = env_str("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.parse(
+        _database_url,
+        conn_max_age=600,
+        ssl_require=_database_url.startswith("postgres"),
+    )
 }
 
 
@@ -234,3 +238,30 @@ LOGGING = {
         "registration": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }
+
+
+# ---------------------------------------------------------------------------
+# Production hardening (only when DJANGO_DEBUG=False)
+# ---------------------------------------------------------------------------
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Render / Railway terminate TLS at the load balancer.
+    SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 31536000)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Require a real secret key in production — never ship the insecure default.
+    if SECRET_KEY.startswith("django-insecure-"):
+        raise ImproperlyConfigured(
+            "Set DJANGO_SECRET_KEY to a long random value before deploying with "
+            "DJANGO_DEBUG=False. Generate one with: "
+            "python -c \"import secrets; print(secrets.token_urlsafe(50))\""
+        )
+    if not ALLOWED_HOSTS:
+        raise ImproperlyConfigured(
+            "Set DJANGO_ALLOWED_HOSTS to your live domain "
+            "(e.g. your-app.onrender.com) before deploying with DJANGO_DEBUG=False."
+        )
