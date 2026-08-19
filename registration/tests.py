@@ -96,6 +96,36 @@ class RegistrationEndpointTests(TestCase):
         self.assertIn("confirmation has been sent", body["message"])
 
     @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST_USER="organiser@gmail.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        ORGANISER_EMAIL="organiser@gmail.com",
+    )
+    def test_emails_use_the_branded_html_template(self):
+        self.post_registration()
+
+        for message in mail.outbox:
+            alternatives = dict((content_type, body) for body, content_type in message.alternatives)
+            self.assertIn("text/html", alternatives, f"{message.subject} has no HTML version")
+            self.assertIn("Gurkhali FC", alternatives["text/html"])
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST_USER="organiser@gmail.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        ORGANISER_EMAIL="organiser@gmail.com",
+    )
+    def test_emails_never_contain_an_admin_link(self):
+        """The admin URL must not be shared with teams or organisers."""
+        self.post_registration()
+
+        self.assertEqual(len(mail.outbox), 2)
+        for message in mail.outbox:
+            bodies = [message.body] + [body for body, _ in message.alternatives]
+            for body in bodies:
+                self.assertNotIn("/admin/", body)
+
+    @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
         EMAIL_HOST_USER="organiser@gmail.com",
         EMAIL_HOST_PASSWORD="wrong-password",

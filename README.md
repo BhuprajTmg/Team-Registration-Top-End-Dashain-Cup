@@ -166,8 +166,8 @@ This is a standard Django app — deploy it anywhere that runs Python
 (Render, Railway, PythonAnywhere, Fly.io, a VPS, etc.). A quick checklist:
 
 - Set real environment variables (`DJANGO_SECRET_KEY`, `DJANGO_DEBUG=False`,
-  `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, the `EMAIL_*`
-  variables, `SITE_URL`) — see `.env.example` for the full list.
+  `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`, and the `EMAIL_*`
+  variables) — see `.env.example` for the full list.
 - Switch to a production database if you expect heavy traffic (SQLite,
   used by default, is fine for a single tournament's registrations).
 - Run `python manage.py collectstatic` — static files are served via

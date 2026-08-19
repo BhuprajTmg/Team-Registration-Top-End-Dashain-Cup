@@ -88,10 +88,10 @@ def send_organiser_notification(registration) -> bool:
         return False
 
     context = _display_context(registration)
-    context["admin_url"] = f"{settings.SITE_URL}/admin/registration/teamregistration/{registration.pk}/change/"
 
     subject = f"New team registered: {registration.team_name} ({registration.tournament})"
     text_body = render_to_string("registration/emails/organiser_notification.txt", context)
+    html_body = render_to_string("registration/emails/organiser_notification.html", context)
 
     message = EmailMultiAlternatives(
         subject=subject,
@@ -99,6 +99,7 @@ def send_organiser_notification(registration) -> bool:
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[settings.ORGANISER_EMAIL],
     )
+    message.attach_alternative(html_body, "text/html")
 
     try:
         message.send(fail_silently=False)

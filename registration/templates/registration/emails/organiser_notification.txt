@@ -9,5 +9,3 @@ A new team just registered for {{ registration.tournament }}.
   Previous Experience: {{ experience_display }}
   Notes: {{ notes_display }}
   Submitted At: {{ registration.created_at }}
-
-View all registrations in the Django admin: {{ admin_url }}

@@ -69,10 +69,6 @@ ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", "")
 
-# Public URL of the deployed site, used to build links in emails (e.g. the
-# admin link in the organiser notification email).
-SITE_URL = env_str("SITE_URL", "http://localhost:8000")
-
 
 # Application definition
 
