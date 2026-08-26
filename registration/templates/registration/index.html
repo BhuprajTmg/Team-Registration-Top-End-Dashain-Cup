@@ -52,7 +52,8 @@
     </div>
 
     <div class="card">
-      <form id="team-form" novalidate data-register-url="{% url 'registration:register' %}" data-teams-url="{% url 'registration:teams' %}">{% csrf_token %}
+      <form id="team-form" novalidate data-register-url="{% url 'registration:register' %}" data-teams-url="{% url 'registration:teams' %}">
+        {% csrf_token %}
         <div class="field-row">
           <div class="field full" id="field-teamname">
             <label for="teamName">Team name <span class="req">*</span></label>
