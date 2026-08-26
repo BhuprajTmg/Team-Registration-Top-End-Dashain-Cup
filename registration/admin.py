@@ -18,9 +18,9 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     list_display = (
         "team_name",
         "manager_name",
-        "home_city",
         "phone_link",
         "gmail_link",
+        "player_count",
         "squad_size_display",
         "confirmation_email_sent",
         "created_at",
@@ -41,11 +41,11 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     empty_value_display = "—"
     actions = ("export_as_csv", "resend_confirmation_email")
 
-    readonly_fields = ("created_at", "confirmation_email_sent", "organiser_notified")
+    readonly_fields = ("created_at", "confirmation_email_sent", "organiser_notified", "players")
 
     fieldsets = (
         ("Tournament", {"fields": ("tournament", "division")}),
-        ("Team", {"fields": ("team_name", "manager_name", "home_city", "squad_size")}),
+        ("Team", {"fields": ("team_name", "manager_name", "home_city", "squad_size", "players")}),
         ("Contact", {"fields": ("phone", "gmail")}),
         ("Additional information", {"fields": ("experience", "notes")}),
         (
@@ -67,6 +67,10 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     @admin.display(description="Gmail", ordering="gmail")
     def gmail_link(self, obj):
         return format_html('<a href="mailto:{}">{}</a>', obj.gmail, obj.gmail)
+
+    @admin.display(description="Players")
+    def player_count(self, obj):
+        return len(obj.players or [])
 
     @admin.display(description="Squad size", ordering="squad_size")
     def squad_size_display(self, obj):
@@ -103,6 +107,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                 "Phone",
                 "Gmail",
                 "Squad size",
+                "Players",
                 "Previous experience",
                 "Notes",
                 "Confirmation email sent",
@@ -111,6 +116,11 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         )
 
         for team in queryset:
+            players_text = "; ".join(
+                f"{p.get('name')} (#{p.get('jersey')})" if p.get("jersey") else p.get("name", "")
+                for p in (team.players or [])
+                if p.get("name")
+            )
             writer.writerow(
                 [
                     timezone.localtime(team.created_at).strftime("%Y-%m-%d %H:%M"),
@@ -122,6 +132,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                     team.phone,
                     team.gmail,
                     team.get_squad_size_display() if team.squad_size else "",
+                    players_text,
                     team.experience,
                     team.notes,
                     "Yes" if team.confirmation_email_sent else "No",

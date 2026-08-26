@@ -14,6 +14,10 @@ from dashain_cup.settings import env_bool, env_int, env_str
 
 from .models import TeamRegistration
 
+SAMPLE_PLAYERS = [
+    {"name": f"Player {i}", "jersey": str(i)} for i in range(1, 8)
+]
+
 VALID_PAYLOAD = {
     "team_name": "Test Tigers",
     "manager_name": "Sita Gurung",
@@ -24,6 +28,8 @@ VALID_PAYLOAD = {
     "experience": "N/A",
     "notes": "N/A",
     "agree": True,
+    "pin": "4821",
+    "players": SAMPLE_PLAYERS,
 }
 
 
@@ -39,7 +45,8 @@ class RegistrationEndpointTests(TestCase):
     def test_landing_page_loads(self):
         response = self.client.get(reverse("registration:index"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Register Your Team")
+        self.assertContains(response, "Register your team")
+        self.assertContains(response, "Registered teams")
 
     def test_valid_submission_is_saved(self):
         response = self.post_registration()
@@ -52,6 +59,77 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(team.team_name, "Test Tigers")
         self.assertEqual(team.gmail, "testtigers@gmail.com")
         self.assertEqual(team.tournament, "Dashain Cup 2026")
+        self.assertEqual(len(team.players), 7)
+        self.assertTrue(team.check_pin("4821"))
+        self.assertFalse(team.check_pin("0000"))
+        self.assertEqual(team.squad_size, "7-9")
+
+    def test_public_teams_list_hides_gmail_and_pin(self):
+        self.post_registration()
+        response = self.client.get(reverse("registration:teams"))
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertTrue(body["ok"])
+        self.assertEqual(len(body["teams"]), 1)
+        team = body["teams"][0]
+        self.assertEqual(team["teamName"], "Test Tigers")
+        self.assertNotIn("gmail", team)
+        self.assertNotIn("pin", team)
+        self.assertNotIn("pin_hash", team)
+
+    def test_pin_unlock_and_update_flow(self):
+        self.post_registration()
+        team = TeamRegistration.objects.get()
+
+        bad = self.client.post(
+            reverse("registration:verify_pin", args=[team.pk]),
+            data=json.dumps({"pin": "0000"}),
+            content_type="application/json",
+        )
+        self.assertEqual(bad.status_code, 403)
+
+        good = self.client.post(
+            reverse("registration:verify_pin", args=[team.pk]),
+            data=json.dumps({"pin": "4821"}),
+            content_type="application/json",
+        )
+        self.assertEqual(good.status_code, 200)
+        self.assertTrue(good.json()["ok"])
+
+        new_players = [{"name": f"Updated {i}", "jersey": str(i)} for i in range(1, 9)]
+        updated = self.client.post(
+            reverse("registration:update_team", args=[team.pk]),
+            data=json.dumps(
+                {
+                    "pin": "4821",
+                    "teamName": "Updated Tigers",
+                    "captainName": "Sita Gurung",
+                    "contactPhone": "0400 111 111",
+                    "players": new_players,
+                }
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(updated.status_code, 200)
+        team.refresh_from_db()
+        self.assertEqual(team.team_name, "Updated Tigers")
+        self.assertEqual(len(team.players), 8)
+
+    def test_pin_protected_delete(self):
+        self.post_registration()
+        team = TeamRegistration.objects.get()
+        deleted = self.client.post(
+            reverse("registration:delete_team", args=[team.pk]),
+            data=json.dumps({"pin": "4821"}),
+            content_type="application/json",
+        )
+        self.assertEqual(deleted.status_code, 200)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_too_few_players_is_rejected(self):
+        response = self.post_registration(players=SAMPLE_PLAYERS[:3])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
 
     def test_non_gmail_address_is_rejected(self):
         response = self.post_registration(gmail="team@yahoo.com")

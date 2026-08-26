@@ -1,11 +1,11 @@
 A new team just registered for {{ registration.tournament }}.
 
   Team Name: {{ registration.team_name }}
-  Manager / Coach: {{ registration.manager_name }}
+  Captain: {{ registration.manager_name }}
   Home City / Suburb: {{ registration.home_city }}
   Phone: {{ registration.phone }}
   Gmail: {{ registration.gmail }}
   Squad Size: {{ squad_size_display }}
-  Previous Experience: {{ experience_display }}
+  Players: {{ players_display_text }}
   Notes: {{ notes_display }}
   Submitted At: {{ registration.created_at }}
