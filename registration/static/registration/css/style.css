@@ -18,14 +18,18 @@
     --radius:10px;
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   body{
     margin:0;
     background:var(--cream);
     color:var(--ink);
     font-family:'Karla',sans-serif;
     line-height:1.55;
+    overflow-x:hidden;
+    -webkit-text-size-adjust:100%;
   }
-  .wrap{max-width:920px;margin:0 auto;padding:0 20px 80px;}
+  img, picture, video, svg{max-width:100%;height:auto;display:block;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 80px;width:100%;}
 
   /* ---------- HERO ---------- */
   .hero{
@@ -150,8 +154,10 @@
   label{font-size:13px;font-weight:700;color:var(--ink);}
   label .req{color:var(--maroon);}
   input[type=text], input[type=tel]{
+    width:100%;
+    max-width:100%;
     height:42px;border:1px solid var(--line);border-radius:8px;
-    padding:0 12px;font-size:15px;font-family:'Karla',sans-serif;
+    padding:0 12px;font-size:16px;font-family:'Karla',sans-serif;
     background:var(--cream);color:var(--ink);
     transition:border-color .15s, box-shadow .15s;
   }
@@ -374,10 +380,11 @@
 /* ---------- Extra form controls (gmail / email) ---------- */
 input[type=email], input[type=password], select, textarea{
   height:42px;border:1px solid var(--line);border-radius:8px;
-  padding:0 12px;font-size:15px;font-family:'Karla',sans-serif;
+  padding:0 12px;font-size:16px;font-family:'Karla',sans-serif;
   background:var(--cream);color:var(--ink);
   transition:border-color .15s, box-shadow .15s;
   width:100%;
+  max-width:100%;
 }
 textarea{height:auto;padding:10px 12px;resize:vertical;}
 input[type=email]:focus, input[type=password]:focus, select:focus, textarea:focus{
@@ -437,3 +444,88 @@ input[type=email]:focus, input[type=password]:focus, select:focus, textarea:focu
 .crest{animation:crest-in .7s ease both;}
 h1.title{animation:title-in .75s .12s ease both;}
 .subtitle{animation:title-in .75s .22s ease both;}
+
+/* ---------- Mobile / small screens ---------- */
+@media (max-width:720px){
+  .wrap{padding:0 16px 56px;}
+  .hero{padding:36px 16px 32px;}
+  .hero-top{gap:12px;margin-bottom:16px;align-items:flex-start;}
+  .crest{width:56px;height:56px;}
+  .hero-top-text .club-est{
+    font-size:11px;line-height:1.4;letter-spacing:.02em;
+  }
+  .eyebrow{font-size:11px;letter-spacing:.1em;flex-wrap:wrap;}
+  h1.title{font-size:clamp(36px,12vw,52px);word-break:break-word;}
+  .subtitle{margin-bottom:18px;}
+  .hero-meta{gap:8px;margin-bottom:20px;}
+  .pill{font-size:12px;padding:6px 11px;}
+  .stat-row{max-width:100%;width:100%;}
+  .stat{padding:12px 8px;}
+  .stat .num{font-size:22px;}
+  .stat .lab{font-size:10px;letter-spacing:.04em;}
+
+  section.block{padding:32px 0 0;}
+  .section-head h2{font-size:26px;}
+  .card{padding:18px 14px;border-radius:12px;}
+
+  .players-head{
+    flex-direction:column;align-items:flex-start;gap:4px;
+  }
+  .player-row{
+    grid-template-columns:28px minmax(0,1fr) 56px 32px;
+    gap:6px;
+  }
+  .player-row .num{width:28px;height:28px;font-size:12px;}
+  .player-row .jersey-input{min-width:0;}
+  .remove-player{width:32px;height:32px;}
+
+  .submit-row{flex-direction:column;align-items:stretch;gap:10px;}
+  .btn-primary{width:100%;text-align:center;}
+  .submit-note{text-align:center;}
+
+  .teams-toolbar{flex-direction:column;align-items:stretch;}
+  input#search-teams{max-width:none;width:100%;}
+
+  .team-card-head{
+    flex-wrap:wrap;align-items:flex-start;padding:14px;gap:10px;
+  }
+  .team-name-block{flex:1 1 180px;}
+  .team-card-right{
+    width:100%;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .roster-grid{grid-template-columns:1fr;}
+
+  .modal-backdrop{padding:12px;align-items:flex-end;}
+  .modal-box{
+    max-width:100%;
+    padding:18px 14px;
+    max-height:92vh;
+    overflow-y:auto;
+    border-radius:14px 14px 10px 10px;
+  }
+  .rules-modal-box{max-width:100%;max-height:92vh;}
+  .rules-modal-box .toc ol{columns:1;}
+  .edit-toolbar{
+    flex-direction:column;align-items:stretch;gap:8px;
+  }
+  .edit-toolbar .btn-delete{width:100%;}
+  .modal-actions{flex-wrap:wrap;}
+  .modal-actions button{flex:1 1 auto;}
+
+  .result-overlay{padding:12px;align-items:flex-end;}
+  .result-card{padding:24px 16px 18px;border-radius:14px 14px 10px 10px;}
+  .result-title{font-size:22px;}
+  .result-action{width:100%;}
+}
+
+@media (max-width:380px){
+  .player-row{
+    grid-template-columns:24px minmax(0,1fr) 48px 28px;
+    gap:5px;
+  }
+  .stat-row{grid-template-columns:1fr;}
+  .hero-top-text .club-est{display:none;}
+}
