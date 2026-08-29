@@ -17,8 +17,7 @@ COPY . .
 
 RUN chmod +x ./build.sh \
     && DJANGO_SECRET_KEY=build-only \
-       DJANGO_DEBUG=False \
-       DJANGO_ALLOWED_HOSTS='*' \
+       DJANGO_DEBUG=True \
        python manage.py collectstatic --no-input
 
 EXPOSE 8000
