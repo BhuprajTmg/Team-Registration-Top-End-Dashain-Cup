@@ -281,8 +281,14 @@ if not DEBUG:
             "(e.g. your-app.onrender.com) before deploying with DJANGO_DEBUG=False."
         )
     if not CSRF_TRUSTED_ORIGINS:
-        raise ImproperlyConfigured(
-            "Set DJANGO_CSRF_TRUSTED_ORIGINS to your https origin "
-            "(e.g. https://your-app.fly.dev) or set DJANGO_ALLOWED_HOSTS so it can "
-            "be derived automatically."
-        )
+        # Only enforce when we have concrete hostnames (Docker image builds may
+        # use DEBUG=True or placeholder hosts for collectstatic).
+        concrete_hosts = [
+            h for h in ALLOWED_HOSTS if h and h not in ("*", "localhost", "127.0.0.1")
+        ]
+        if concrete_hosts:
+            raise ImproperlyConfigured(
+                "Set DJANGO_CSRF_TRUSTED_ORIGINS to your https origin "
+                "(e.g. https://your-app.fly.dev) or set DJANGO_ALLOWED_HOSTS so it can "
+                "be derived automatically."
+            )
