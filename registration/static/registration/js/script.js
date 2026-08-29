@@ -52,6 +52,7 @@
   async function apiCall(url, payload) {
     var res = await fetch(url, {
       method: "POST",
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": getCsrfToken(),
@@ -63,6 +64,18 @@
       data = await res.json();
     } catch (_) {
       data = { ok: false, status: "error" };
+      if (res.status === 403) {
+        data.message =
+          "Security check failed. Please refresh the page and try registering again.";
+      } else if (res.status >= 500) {
+        data.message =
+          "The server had a problem saving your registration. Please try again in a moment.";
+      } else if (!res.ok) {
+        data.message =
+          "Something went wrong submitting your registration (HTTP " +
+          res.status +
+          "). Please refresh and try again.";
+      }
     }
     data._httpOk = res.ok;
     data._status = res.status;

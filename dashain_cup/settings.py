@@ -70,6 +70,19 @@ ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", "")
 
+# On HTTPS hosts (Fly, Render, etc.) browsers send an Origin header. Django 4+
+# requires those origins to be listed or CSRF POSTs to /api/* will fail with
+# a 403 — which the registration form shows as a generic "Registration Failed".
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{host}"
+        for host in ALLOWED_HOSTS
+        if host and host not in ("*", "localhost", "127.0.0.1") and not host.startswith(".")
+    ]
+
+# Return JSON for API CSRF failures instead of an HTML 403 page.
+CSRF_FAILURE_VIEW = "dashain_cup.csrf.csrf_failure"
+
 
 # Application definition
 
@@ -249,7 +262,9 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", default=True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    # Render / Railway terminate TLS at the load balancer.
+    CSRF_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_SAMESITE = "Lax"
+    # Render / Railway / Fly terminate TLS at the load balancer.
     SECURE_HSTS_SECONDS = env_int("SECURE_HSTS_SECONDS", 31536000)
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -264,4 +279,10 @@ if not DEBUG:
         raise ImproperlyConfigured(
             "Set DJANGO_ALLOWED_HOSTS to your live domain "
             "(e.g. your-app.onrender.com) before deploying with DJANGO_DEBUG=False."
+        )
+    if not CSRF_TRUSTED_ORIGINS:
+        raise ImproperlyConfigured(
+            "Set DJANGO_CSRF_TRUSTED_ORIGINS to your https origin "
+            "(e.g. https://your-app.fly.dev) or set DJANGO_ALLOWED_HOSTS so it can "
+            "be derived automatically."
         )

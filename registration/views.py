@@ -63,6 +63,25 @@ class RegisterView(View):
     """
 
     def post(self, request):
+        try:
+            return self._register(request)
+        except Exception:
+            import logging
+
+            logging.getLogger(__name__).exception("Unexpected registration failure")
+            return JsonResponse(
+                {
+                    "status": "error",
+                    "ok": False,
+                    "message": (
+                        "Something went wrong on the server while saving your registration. "
+                        "Please try again in a moment."
+                    ),
+                },
+                status=500,
+            )
+
+    def _register(self, request):
         payload, error = _parse_json(request)
         if error:
             return error
@@ -103,7 +122,7 @@ class RegisterView(View):
 
         if registration.confirmation_email_sent:
             message = (
-                f'Thanks, {registration.team_name}! Your registration is in. A confirmation has '
+                f"Thanks, {registration.team_name}! Your registration is in. A confirmation has "
                 f"been sent to {registration.gmail}. Keep your PIN safe — you'll need it to edit "
                 "this entry."
             )
@@ -129,7 +148,6 @@ class RegisterView(View):
                 "team": registration.public_dict(),
             }
         )
-
 
 class TeamVerifyPinView(View):
     def post(self, request, pk):
