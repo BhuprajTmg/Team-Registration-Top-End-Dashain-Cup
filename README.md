@@ -160,18 +160,100 @@ admin listing) is working:
 python manage.py test
 ```
 
-## 4. Deploying (Render — recommended)
+## 4. Deploying
 
-This is the easiest free way to put the site on the public internet.
+| Host | Cost | Always on? | Gmail auto-reply |
+| --- | --- | --- | --- |
+| **Fly.io + Neon** (recommended) | Free | Yes | Works |
+| Render | Free | No (sleeps ~15 min) | Works |
+| PythonAnywhere free | Free | Yes | **Blocked** (SMTP locked on free) |
 
-### Step A — Free Postgres database (Neon)
+### Option A — Fly.io (always on, free)
+
+This is the best free option when you do **not** want cold starts.
+
+#### A1 — Free Postgres (Neon)
+
+1. Go to https://neon.tech and create a free project (e.g. `dashain-cup`).
+2. Copy the **connection string**  
+   (`postgresql://user:pass@ep-xxx.neon.tech/neondb?sslmode=require`).
+
+#### A2 — Install Fly and log in (on your PC)
+
+```powershell
+# Windows (PowerShell) — install flyctl, then:
+fly auth login
+```
+
+Install guide: https://fly.io/docs/hands-on/install-flyctl/
+
+#### A3 — Create the app (once)
+
+From the project folder (after `git pull origin main`):
+
+```powershell
+fly launch --no-deploy
+```
+
+- Accept this repo’s `fly.toml`
+- Choose region close to Darwin (e.g. `syd`)
+- Do **not** create a Fly Postgres database (use Neon instead)
+
+If `fly launch` renames the app, note the hostname: `https://YOUR-APP-NAME.fly.dev`
+
+#### A4 — Set secrets
+
+```powershell
+# Generate a secret key first:
+python -c "import secrets; print(secrets.token_urlsafe(50))"
+
+fly secrets set `
+  DJANGO_SECRET_KEY="paste-the-generated-key" `
+  DJANGO_ALLOWED_HOSTS="YOUR-APP-NAME.fly.dev" `
+  DJANGO_CSRF_TRUSTED_ORIGINS="https://YOUR-APP-NAME.fly.dev" `
+  DATABASE_URL="postgresql://...neon.../neondb?sslmode=require" `
+  EMAIL_HOST_USER="your-tournament-gmail@gmail.com" `
+  EMAIL_HOST_PASSWORD="your-16-char-app-password" `
+  ORGANISER_EMAIL="your-tournament-gmail@gmail.com" `
+  DEFAULT_FROM_EMAIL="Gurkhali FC <your-tournament-gmail@gmail.com>"
+```
+
+#### A5 — Deploy
+
+```powershell
+fly deploy
+```
+
+Site URL: `https://YOUR-APP-NAME.fly.dev`
+
+#### A6 — Create admin + test email
+
+```powershell
+fly ssh console
+python manage.py createsuperuser
+python manage.py check_email your-own-address@gmail.com
+exit
+```
+
+Then open `/admin/` on your Fly URL.
+
+`fly.toml` sets `min_machines_running = 1` and `auto_stop_machines = "off"` so the site stays up.
+
+---
+
+### Option B — Render (free, but sleeps)
+
+This is the easiest free way to put the site on the public internet, but free
+services **spin down after ~15 minutes idle** (30–60s wake-up).
+
+#### Step A — Free Postgres database (Neon)
 
 1. Go to https://neon.tech and create a free account.
 2. Create a project (any name, e.g. `dashain-cup`).
 3. Copy the **connection string** (looks like
    `postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`).
 
-### Step B — Deploy the app on Render
+#### Step B — Deploy the app on Render
 
 1. Push this repo to GitHub (already done if you're reading it here).
 2. Go to https://dashboard.render.com → **New** → **Web Service**.
@@ -200,7 +282,7 @@ This is the easiest free way to put the site on the public internet.
    (usually a few minutes). Your public URL will be
    `https://your-service-name.onrender.com`.
 
-### Step C — Create the admin login
+#### Step C — Create the admin login
 
 1. In the Render dashboard, open your service → **Shell**.
 2. Run:
@@ -213,7 +295,7 @@ python manage.py createsuperuser
 4. Test a registration on the public site, then confirm the team appears under
    **Team registrations** and that confirmation emails arrive.
 
-### Step D — Confirm email works on the live server
+#### Step D — Confirm email works on the live server
 
 In the Render Shell:
 
@@ -221,7 +303,7 @@ In the Render Shell:
 python manage.py check_email your-own-address@gmail.com
 ```
 
-### One-click alternative (Blueprint)
+#### One-click alternative (Blueprint)
 
 This repo includes a `render.yaml`. On Render you can also choose
 **New → Blueprint**, select this repo, then fill in the `sync: false`
@@ -229,7 +311,7 @@ environment variables (`DATABASE_URL`, `DJANGO_ALLOWED_HOSTS`,
 `DJANGO_CSRF_TRUSTED_ORIGINS`, and the `EMAIL_*` values) before the first
 deploy.
 
-### Important notes
+#### Important notes (Render)
 
 - Free Render web services **spin down after ~15 minutes of idle time**; the
   first visit after that can take 30–60 seconds to wake up. That is normal
@@ -238,6 +320,16 @@ deploy.
   it is wiped on every redeploy. Always set `DATABASE_URL` to Neon (or
   another Postgres host).
 - Never commit your real `.env` file or App Password to GitHub.
+
+---
+
+### Option C — PythonAnywhere (always on, but free blocks Gmail)
+
+PythonAnywhere free keeps the site online 24/7, but **outbound SMTP
+(including Gmail) is blocked on free accounts**, so confirmation emails will
+not send unless you upgrade to a paid plan.
+
+Use Fly.io (Option A) if you need always-on **and** Gmail auto-replies for free.
 
 ## 5. Customising
 
