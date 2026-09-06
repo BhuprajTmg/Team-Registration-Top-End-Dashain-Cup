@@ -46,9 +46,10 @@ class RegistrationEndpointTests(TestCase):
         response = self.client.get(reverse("registration:index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Register your team")
-        self.assertContains(response, "Registered teams")
         self.assertContains(response, "Gurkhali FC presents")
         self.assertContains(response, "Team logo")
+        self.assertContains(response, "footer-logo")
+        self.assertNotContains(response, "Registered teams")
 
     def test_logo_upload_is_saved_and_served(self):
         # 1x1 PNG

@@ -230,25 +230,20 @@
   </div>
 </section>
 
-<section class="teams-section" id="teams">
-  <div class="wrap">
-    <h2 class="section-title">Registered teams</h2>
-    <p class="section-intro">Every team that has entered so far. Tap a team to see its squad. Use Manage + PIN to edit.</p>
-    <div class="teams-toolbar">
-      <input type="text" id="search-teams" placeholder="Search teams or contacts…" />
-    </div>
-    <div id="teams-list-region">
-      <div class="loading-note">Loading registered teams…</div>
-    </div>
-  </div>
 </section>
 
 <footer>
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-club">
-        <h3>Gurkhali FC</h3>
-        <p>A community football club bringing the Gurkhali community together through sport, in Darwin, Northern Territory.</p>
+        <picture>
+          <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+          <img class="footer-logo" src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC" width="64" height="64" />
+        </picture>
+        <div class="footer-club-copy">
+          <h3>Gurkhali FC</h3>
+          <p>A community football club bringing the Gurkhali community together through sport, in Darwin, Northern Territory.</p>
+        </div>
       </div>
       <div class="footer-contact">
         <div>Richardson Park, Darwin NT</div>
