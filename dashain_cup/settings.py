@@ -256,8 +256,15 @@ if EMAIL_USE_TLS and EMAIL_USE_SSL:
     )
 
 # Without a timeout, an unreachable/blocked SMTP host would hang the
-# registration request indefinitely.
+# background email job indefinitely.
 EMAIL_TIMEOUT = env_int("EMAIL_TIMEOUT", 20)
+
+# Save the registration and answer the browser immediately; confirmation
+# emails are delivered by a small in-process worker. Tests stay synchronous
+# so delivery outcomes remain deterministic.
+REGISTRATION_EMAIL_ASYNC = env_bool(
+    "REGISTRATION_EMAIL_ASYNC", default=not RUNNING_TESTS
+)
 
 DEFAULT_FROM_EMAIL = env_str(
     "DEFAULT_FROM_EMAIL",

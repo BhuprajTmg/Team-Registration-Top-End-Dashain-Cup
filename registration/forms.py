@@ -9,6 +9,23 @@ MAX_PLAYERS = 11
 MIN_NON_PREMIER = 8
 
 
+def normalize_australian_phone(raw_phone):
+    """Validate an Australian phone number and return a consistent format."""
+    phone = str(raw_phone or "").strip()
+    if not phone:
+        raise forms.ValidationError("Enter a contact number.")
+
+    compact = re.sub(r"[\s().-]", "", phone)
+    if re.fullmatch(r"0[23478]\d{8}", compact):
+        return compact
+    if re.fullmatch(r"\+61[23478]\d{8}", compact):
+        return "0" + compact[3:]
+
+    raise forms.ValidationError(
+        "Enter a valid Australian phone number, for example 0400 123 456 or +61 400 123 456."
+    )
+
+
 def normalize_players(raw_players):
     """Validate and normalize a squad list from the registration / edit API."""
     if not isinstance(raw_players, list):
@@ -105,7 +122,7 @@ class TeamRegistrationForm(forms.ModelForm):
         return (self.cleaned_data.get("home_city") or "").strip()
 
     def clean_phone(self):
-        return self.cleaned_data["phone"].strip()
+        return normalize_australian_phone(self.cleaned_data["phone"])
 
     def clean_pin(self):
         import random

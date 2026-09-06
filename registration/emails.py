@@ -7,12 +7,15 @@ services or paid APIs are needed.
 """
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db import close_old_connections
 from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
+_email_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="registration-email")
 
 EMAIL_TROUBLESHOOTING_HINT = (
     "Check that EMAIL_HOST_USER is the tournament's Gmail address and that "
@@ -126,3 +129,35 @@ def send_organiser_notification(registration) -> bool:
             exc_info=True,
         )
         return False
+
+
+def deliver_registration_emails(registration_id: int) -> None:
+    """Send both registration emails and persist their delivery outcomes."""
+    from .models import TeamRegistration
+
+    close_old_connections()
+    try:
+        registration = TeamRegistration.objects.get(pk=registration_id)
+        confirmation_sent = send_confirmation_email(registration)
+        organiser_notified = send_organiser_notification(registration)
+        TeamRegistration.objects.filter(pk=registration_id).update(
+            confirmation_email_sent=confirmation_sent,
+            organiser_notified=organiser_notified,
+        )
+    except TeamRegistration.DoesNotExist:
+        logger.warning(
+            "Skipping registration emails because registration %s no longer exists.",
+            registration_id,
+        )
+    except Exception:
+        logger.exception(
+            "Unexpected failure delivering registration emails for registration %s.",
+            registration_id,
+        )
+    finally:
+        close_old_connections()
+
+
+def queue_registration_emails(registration_id: int) -> None:
+    """Queue email delivery without holding up the registration response."""
+    _email_executor.submit(deliver_registration_emails, registration_id)

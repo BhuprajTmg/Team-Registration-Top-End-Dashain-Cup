@@ -215,6 +215,19 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.json()["status"], "error")
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
+    def test_phone_number_rejects_text_and_invalid_numbers(self):
+        for invalid_phone in ("call me", "12345", "1400 123 456", "+61 ABC DEF"):
+            with self.subTest(phone=invalid_phone):
+                response = self.post_registration(phone=invalid_phone)
+                self.assertEqual(response.status_code, 400)
+                self.assertIn("Australian phone number", response.json()["message"])
+                self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_international_australian_phone_is_accepted_and_normalized(self):
+        response = self.post_registration(phone="+61 400 123 456")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(TeamRegistration.objects.get().phone, "0400123456")
+
     def test_missing_required_field_is_rejected(self):
         response = self.post_registration(team_name="")
 
@@ -261,6 +274,24 @@ class RegistrationEndpointTests(TestCase):
         body = response.json()
         self.assertTrue(body["confirmation_email_sent"])
         self.assertIn("confirmation has been sent", body["message"])
+
+    @override_settings(
+        REGISTRATION_EMAIL_ASYNC=True,
+        EMAIL_HOST_USER="organiser@gmail.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        ORGANISER_EMAIL="organiser@gmail.com",
+    )
+    @mock.patch("registration.views.queue_registration_emails")
+    def test_production_submission_queues_email_without_waiting(
+        self, queue_registration_emails
+    ):
+        response = self.post_registration()
+
+        self.assertEqual(response.status_code, 200)
+        registration = TeamRegistration.objects.get()
+        queue_registration_emails.assert_called_once_with(registration.pk)
+        self.assertTrue(response.json()["email_queued"])
+        self.assertIn("being sent", response.json()["message"])
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",

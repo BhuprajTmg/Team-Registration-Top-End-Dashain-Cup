@@ -163,8 +163,11 @@
           </div>
           <div id="field-contact">
             <label for="contactPhone">Phone number <span class="req">*</span></label>
-            <input type="tel" id="contactPhone" name="phone" autocomplete="tel" required />
-            <span class="error-text">Enter a contact number.</span>
+            <input type="tel" id="contactPhone" name="phone" autocomplete="tel"
+              inputmode="tel" maxlength="20" placeholder="0400 123 456"
+              pattern="(?:0[23478]|\+61[23478])(?:[ ()-]*[0-9]){8}" required />
+            <span class="hint">Australian number only, for example 0400 123 456 or +61 400 123 456.</span>
+            <span class="error-text" id="phone-error">Enter a valid Australian phone number.</span>
           </div>
         </div>
         <div class="field-row single" id="field-gmail">

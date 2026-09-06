@@ -353,6 +353,13 @@
     return el ? String(el.value || "").trim() : "";
   }
 
+  function normalizeAustralianPhone(rawPhone) {
+    var compact = String(rawPhone || "").trim().replace(/[\s().-]/g, "");
+    if (/^0[23478]\d{8}$/.test(compact)) return compact;
+    if (/^\+61[23478]\d{8}$/.test(compact)) return "0" + compact.slice(3);
+    return null;
+  }
+
   function validateRegistrationForm() {
     clearFieldErrors();
     var missing = [];
@@ -371,9 +378,18 @@
       setFieldError("field-captain");
       missing.push("Contact full name");
     }
+    var normalizedPhone = normalizeAustralianPhone(contactPhone);
+    var phoneError = document.getElementById("phone-error");
     if (!contactPhone) {
       setFieldError("field-contact");
       missing.push("Phone number");
+    } else if (!normalizedPhone) {
+      setFieldError("field-contact");
+      if (phoneError) {
+        phoneError.textContent =
+          "Enter a valid Australian phone number, for example 0400 123 456.";
+      }
+      missing.push("Valid Australian phone number");
     }
     if (!gmail) {
       setFieldError("field-gmail");
@@ -476,7 +492,7 @@
       values: {
         teamName: teamName,
         captainName: captainName,
-        contactPhone: contactPhone,
+        contactPhone: normalizedPhone || contactPhone,
         gmail: gmail,
         players: players,
       },
@@ -634,8 +650,25 @@
 
   wireRequiredInput("teamName", "field-teamname");
   wireRequiredInput("captainName", "field-captain");
-  wireRequiredInput("contactPhone", "field-contact");
   wireRequiredInput("gmail", "field-gmail");
+
+  var phoneInputLive = document.getElementById("contactPhone");
+  if (phoneInputLive) {
+    phoneInputLive.addEventListener("blur", function () {
+      var wrap = document.getElementById("field-contact");
+      if (!wrap) return;
+      wrap.classList.toggle(
+        "err",
+        !normalizeAustralianPhone(phoneInputLive.value)
+      );
+    });
+    phoneInputLive.addEventListener("input", function () {
+      var wrap = document.getElementById("field-contact");
+      if (wrap && normalizeAustralianPhone(phoneInputLive.value)) {
+        wrap.classList.remove("err");
+      }
+    });
+  }
 
   var logoInputLive = document.getElementById("teamLogo");
   if (logoInputLive) {
