@@ -12,8 +12,17 @@ import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
-import dj_database_url
-from dotenv import load_dotenv
+
+try:
+    import dj_database_url
+except ImportError:  # pragma: no cover - local envs missing optional deps
+    dj_database_url = None
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover
+    def load_dotenv(*_args, **_kwargs):
+        return False
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
