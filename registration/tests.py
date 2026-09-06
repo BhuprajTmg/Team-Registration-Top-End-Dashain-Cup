@@ -18,6 +18,11 @@ SAMPLE_PLAYERS = [
     {"name": f"Player {i}", "jersey": str(i)} for i in range(1, 9)
 ]
 
+SAMPLE_LOGO = (
+    "data:image/png;base64,"
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+)
+
 VALID_PAYLOAD = {
     "team_name": "Test Tigers",
     "manager_name": "Sita Gurung",
@@ -30,6 +35,7 @@ VALID_PAYLOAD = {
     "agree": True,
     "pin": "4821",
     "players": SAMPLE_PLAYERS,
+    "teamLogo": SAMPLE_LOGO,
 }
 
 
@@ -55,13 +61,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "8 to 11")
 
     def test_logo_upload_is_saved_and_served(self):
-        # 1x1 PNG
-        png_b64 = (
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-        )
-        response = self.post_registration(
-            teamLogo=f"data:image/png;base64,{png_b64}"
-        )
+        response = self.post_registration()
         self.assertEqual(response.status_code, 200)
         team = TeamRegistration.objects.get()
         self.assertTrue(team.has_logo)
@@ -72,6 +72,18 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(logo.status_code, 200)
         self.assertEqual(logo["Content-Type"], "image/png")
         self.assertGreater(len(logo.content), 10)
+
+    def test_missing_logo_is_rejected(self):
+        response = self.post_registration(teamLogo="")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("logo", response.json()["message"].lower())
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_landing_page_marks_logo_required(self):
+        response = self.client.get(reverse("registration:index"))
+        self.assertContains(response, 'id="teamLogo"')
+        self.assertContains(response, "Team logo")
+        self.assertNotContains(response, "(optional, image file)")
 
     def test_valid_submission_is_saved(self):
         response = self.post_registration()
@@ -85,6 +97,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(team.gmail, "testtigers@gmail.com")
         self.assertEqual(team.tournament, "Dashain Cup 2026")
         self.assertEqual(len(team.players), 8)
+        self.assertTrue(team.has_logo)
         self.assertTrue(team.check_pin("4821"))
         self.assertFalse(team.check_pin("0000"))
         self.assertEqual(team.squad_size, "7-9")
