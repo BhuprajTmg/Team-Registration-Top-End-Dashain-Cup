@@ -9,38 +9,57 @@
 <link rel="icon" type="image/webp" href="{% static 'registration/img/logo.webp' %}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="{% static 'registration/css/style.css' %}" />
 </head>
 <body>
 <a class="skip" href="#register">Skip to registration form</a>
 
 <header class="hero">
-  <div class="wrap">
-    <div class="hero-top">
-      <div class="club-mark">
-        <picture>
-          <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
-          <img class="club-logo" src="{% static 'registration/img/logo.png' %}" alt="" width="40" height="40" />
-        </picture>
-        Gurkhali FC
+  <div class="wrap hero-inner">
+    <div class="hero-brand">
+      <picture>
+        <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+        <img class="hero-crest" src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC" width="52" height="52" />
+      </picture>
+      <div class="hero-brand-copy">
+        <p class="hero-presents"><span class="dot" aria-hidden="true"></span> Gurkhali FC presents</p>
+        <p class="hero-tagline">Himalayan Hearts · Top End Spirits · Est. 2023</p>
       </div>
-      <div class="hero-loc">Darwin, Northern Territory</div>
     </div>
-    <div class="hero-body">
-      <p class="hero-label">Team Registration</p>
-      <h1 class="hero-title">{{ tournament_title }} <em>{{ tournament_year }}</em></h1>
-      <p class="hero-sub">
-        A Dashain-season football gathering for the Gurkhali community — bring your squad to
-        Richardson Park for a day of 7-a-side football, tika, and celebration.
-      </p>
-      <div class="hero-cta">
-        <a href="#register" class="btn">Register your team</a>
+
+    <h1 class="hero-title">Dashain Cup <span>{{ tournament_year }}</span></h1>
+    <p class="hero-sub">
+      Open 7A-side football competition — register your team and lock in your squad before the draw.
+    </p>
+
+    <div class="hero-chips" aria-label="Tournament highlights">
+      <span class="chip">Format: 7-a-side</span>
+      <span class="chip">Squad size: 7 to 12 players</span>
+      <span class="chip">Organized by: Gurkhali FC</span>
+    </div>
+
+    <div class="hero-cta">
+      <a href="#register" class="btn btn-register">Register your team</a>
+    </div>
+
+    <div class="hero-stats" aria-label="Registration snapshot">
+      <div class="stat">
+        <div class="stat-num" id="stat-teams">0</div>
+        <div class="stat-label">Teams in</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-players">0</div>
+        <div class="stat-label">Players signed</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num stat-latest" id="stat-latest">–</div>
+        <div class="stat-label">Latest entry</div>
       </div>
     </div>
   </div>
+  <div class="hero-bars" aria-hidden="true"></div>
 </header>
-<div class="stitch" aria-hidden="true"></div>
 
 <section class="facts" aria-label="Tournament details">
   <div class="wrap facts-grid">
@@ -117,11 +136,17 @@
 
       <fieldset>
         <legend>Team details</legend>
-        <div class="field-row single" id="field-teamname">
-          <div>
+        <div class="field-row">
+          <div id="field-teamname">
             <label for="teamName">Team name <span class="req">*</span></label>
             <input type="text" id="teamName" name="team_name" autocomplete="organization" required />
             <span class="error-text">Enter your team name.</span>
+          </div>
+          <div id="field-logo">
+            <label for="teamLogo">Team logo <span class="hint">(optional, image file)</span></label>
+            <input type="file" id="teamLogo" name="team_logo" accept="image/png,image/jpeg,image/webp,image/gif" />
+            <span class="hint">JPG, PNG, WEBP or GIF — max 1&nbsp;MB.</span>
+            <span class="error-text">Choose a valid image under 1&nbsp;MB.</span>
           </div>
         </div>
       </fieldset>

@@ -41,11 +41,29 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     empty_value_display = "—"
     actions = ("export_as_csv", "resend_confirmation_email")
 
-    readonly_fields = ("created_at", "confirmation_email_sent", "organiser_notified", "players")
+    readonly_fields = (
+        "created_at",
+        "confirmation_email_sent",
+        "organiser_notified",
+        "players",
+        "logo_preview",
+    )
 
     fieldsets = (
         ("Tournament", {"fields": ("tournament", "division")}),
-        ("Team", {"fields": ("team_name", "manager_name", "home_city", "squad_size", "players")}),
+        (
+            "Team",
+            {
+                "fields": (
+                    "team_name",
+                    "manager_name",
+                    "home_city",
+                    "squad_size",
+                    "logo_preview",
+                    "players",
+                )
+            },
+        ),
         ("Contact", {"fields": ("phone", "gmail")}),
         ("Additional information", {"fields": ("experience", "notes")}),
         (
@@ -75,6 +93,16 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     @admin.display(description="Squad size", ordering="squad_size")
     def squad_size_display(self, obj):
         return obj.get_squad_size_display() if obj.squad_size else "—"
+
+    @admin.display(description="Team logo")
+    def logo_preview(self, obj):
+        if not obj.has_logo:
+            return "—"
+        return format_html(
+            '<img src="/api/teams/{}/logo/" alt="" style="max-height:80px;max-width:120px;'
+            'border-radius:8px;background:#111;padding:4px;" />',
+            obj.pk,
+        )
 
     def changelist_view(self, request, extra_context=None):
         """Adds the summary cards shown above the list of teams."""

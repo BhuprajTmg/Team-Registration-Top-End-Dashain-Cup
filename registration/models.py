@@ -31,10 +31,15 @@ class TeamRegistration(models.Model):
     )
     notes = models.TextField(blank=True, default="")
 
-    # Squad roster: [{"name": "...", "jersey": "10"|null}, ...]
+    # Squad roster: [{"name": "...", "jersey": "10"|null, "mpl": bool}, ...]
     players = models.JSONField(default=list, blank=True)
     # Hashed 4-digit PIN used to edit / withdraw the registration publicly.
     pin_hash = models.CharField(max_length=128, blank=True, default="")
+
+    # Optional team logo stored in the DB so it survives Fly redeploys (no volume needed).
+    logo = models.BinaryField(blank=True, null=True, editable=False)
+    logo_content_type = models.CharField(max_length=64, blank=True, default="")
+    logo_filename = models.CharField(max_length=255, blank=True, default="")
 
     confirmation_email_sent = models.BooleanField(default=False)
     organiser_notified = models.BooleanField(default=False)
@@ -67,6 +72,10 @@ class TeamRegistration(models.Model):
             return "13-15"
         return "16+"
 
+    @property
+    def has_logo(self) -> bool:
+        return bool(self.logo)
+
     def public_dict(self) -> dict:
         """Shape expected by the public teams list on the registration page."""
         return {
@@ -76,4 +85,5 @@ class TeamRegistration(models.Model):
             "contactPhone": self.phone,
             "players": self.players or [],
             "registeredAt": self.created_at.isoformat() if self.created_at else "",
+            "logoUrl": f"/api/teams/{self.pk}/logo/" if self.has_logo else None,
         }

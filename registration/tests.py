@@ -47,6 +47,27 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Register your team")
         self.assertContains(response, "Registered teams")
+        self.assertContains(response, "Gurkhali FC presents")
+        self.assertContains(response, "Team logo")
+
+    def test_logo_upload_is_saved_and_served(self):
+        # 1x1 PNG
+        png_b64 = (
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+        )
+        response = self.post_registration(
+            teamLogo=f"data:image/png;base64,{png_b64}"
+        )
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertTrue(team.has_logo)
+        self.assertEqual(team.logo_content_type, "image/png")
+        self.assertIn("logoUrl", response.json()["team"])
+
+        logo = self.client.get(reverse("registration:team_logo", args=[team.pk]))
+        self.assertEqual(logo.status_code, 200)
+        self.assertEqual(logo["Content-Type"], "image/png")
+        self.assertGreater(len(logo.content), 10)
 
     def test_valid_submission_is_saved(self):
         response = self.post_registration()

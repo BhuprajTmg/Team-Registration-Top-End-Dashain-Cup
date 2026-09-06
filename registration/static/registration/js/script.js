@@ -268,6 +268,7 @@
   function clearFieldErrors() {
     [
       "field-teamname",
+      "field-logo",
       "field-captain",
       "field-contact",
       "field-gmail",
@@ -292,6 +293,31 @@
     if (el) el.classList.add("err");
   }
 
+  function readLogoAsDataUrl(file) {
+    return new Promise(function (resolve, reject) {
+      if (!file) {
+        resolve(null);
+        return;
+      }
+      if (!/^image\/(jpeg|jpg|png|webp|gif)$/i.test(file.type)) {
+        reject(new Error("Team logo must be a JPG, PNG, WEBP, or GIF image."));
+        return;
+      }
+      if (file.size > 1024 * 1024) {
+        reject(new Error("Team logo must be 1 MB or smaller."));
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        resolve(reader.result);
+      };
+      reader.onerror = function () {
+        reject(new Error("Could not read the team logo file."));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
     clearFieldErrors();
@@ -302,6 +328,7 @@
     var gmail = document.getElementById("gmail").value.trim();
     var pin = document.getElementById("teamPin").value.trim();
     var pinConfirm = document.getElementById("teamPinConfirm").value.trim();
+    var logoInput = document.getElementById("teamLogo");
     var players = collectPlayers(squadBody);
 
     var valid = true;
@@ -345,6 +372,17 @@
     }
     if (!valid) return;
 
+    var teamLogo = null;
+    try {
+      teamLogo = await readLogoAsDataUrl(
+        logoInput && logoInput.files && logoInput.files[0] ? logoInput.files[0] : null
+      );
+    } catch (logoErr) {
+      setFieldError("field-logo");
+      showResultPopup("error", "Logo upload issue", logoErr.message || "Invalid team logo.");
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
 
@@ -356,6 +394,7 @@
         gmail: gmail,
         pin: pin,
         players: players,
+        teamLogo: teamLogo,
         agree: true,
       });
 
@@ -431,7 +470,33 @@
       .join("");
   }
 
+  function updateStats() {
+    var teamsEl = document.getElementById("stat-teams");
+    var playersEl = document.getElementById("stat-players");
+    var latestEl = document.getElementById("stat-latest");
+    if (!teamsEl || !playersEl || !latestEl) return;
+
+    teamsEl.textContent = String(allTeams.length);
+    var totalPlayers = allTeams.reduce(function (sum, t) {
+      return sum + (t.players ? t.players.length : 0);
+    }, 0);
+    playersEl.textContent = String(totalPlayers);
+
+    var latestLabel = "–";
+    if (allTeams.length) {
+      var sorted = allTeams.slice().sort(function (a, b) {
+        return new Date(b.registeredAt) - new Date(a.registeredAt);
+      });
+      latestLabel =
+        sorted[0].teamName.length > 14
+          ? sorted[0].teamName.slice(0, 13) + "…"
+          : sorted[0].teamName;
+    }
+    latestEl.textContent = latestLabel;
+  }
+
   function renderTeams() {
+    updateStats();
     var region = document.getElementById("teams-list-region");
     var searchEl = document.getElementById("search-teams");
     var query = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase().trim();
@@ -471,12 +536,15 @@
           );
         })
         .join("");
+      var badge = t.logoUrl
+        ? '<img src="' + escapeHtml(t.logoUrl) + '" alt="">'
+        : escapeHtml(initials(t.teamName));
       html +=
         '<div class="team-card">' +
         '<div class="team-card-head">' +
         '<div class="team-name-block">' +
         '<div class="team-badge">' +
-        escapeHtml(initials(t.teamName)) +
+        badge +
         "</div>" +
         '<div class="team-name-text">' +
         "<h4>" +

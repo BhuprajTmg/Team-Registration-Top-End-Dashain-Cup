@@ -2,7 +2,7 @@ import json
 import re
 
 from django import forms
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -10,6 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .emails import email_is_configured, send_confirmation_email, send_organiser_notification
 from .forms import TeamRegistrationForm, normalize_players
+from .logos import parse_logo_payload
 from .models import TeamRegistration
 
 TOURNAMENT_TITLE = "Dashain Cup"
@@ -51,6 +52,23 @@ class TeamListView(View):
     def get(self, request):
         teams = [team.public_dict() for team in TeamRegistration.objects.all()]
         return JsonResponse({"ok": True, "teams": teams})
+
+
+class TeamLogoView(View):
+    """Serves a stored team logo from the database."""
+
+    def get(self, request, pk):
+        team = get_object_or_404(TeamRegistration, pk=pk)
+        if not team.has_logo:
+            return HttpResponseNotFound("No logo uploaded for this team.")
+        response = HttpResponse(
+            bytes(team.logo),
+            content_type=team.logo_content_type or "application/octet-stream",
+        )
+        response["Cache-Control"] = "public, max-age=86400"
+        if team.logo_filename:
+            response["Content-Disposition"] = f'inline; filename="{team.logo_filename}"'
+        return response
 
 
 class RegisterView(View):
@@ -111,9 +129,23 @@ class RegisterView(View):
                 {"status": "error", "ok": False, "message": first_error}, status=400
             )
 
+        try:
+            logo_bytes, logo_type, logo_name = parse_logo_payload(
+                payload.get("teamLogo") or payload.get("team_logo") or payload.get("logo")
+            )
+        except forms.ValidationError as exc:
+            message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
+            return JsonResponse(
+                {"status": "error", "ok": False, "message": message}, status=400
+            )
+
         registration = form.save(commit=False)
         registration.tournament = payload.get("tournament") or TOURNAMENT_NAME
         registration.division = payload.get("division") or DIVISION_NAME
+        if logo_bytes:
+            registration.logo = logo_bytes
+            registration.logo_content_type = logo_type
+            registration.logo_filename = logo_name
         registration.save()
 
         registration.confirmation_email_sent = send_confirmation_email(registration)
@@ -148,6 +180,7 @@ class RegisterView(View):
                 "team": registration.public_dict(),
             }
         )
+
 
 class TeamVerifyPinView(View):
     def post(self, request, pk):

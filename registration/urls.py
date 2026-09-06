@@ -9,6 +9,11 @@ urlpatterns = [
     path("api/register/", views.RegisterView.as_view(), name="register"),
     path("api/teams/", views.TeamListView.as_view(), name="teams"),
     path(
+        "api/teams/<int:pk>/logo/",
+        views.TeamLogoView.as_view(),
+        name="team_logo",
+    ),
+    path(
         "api/teams/<int:pk>/verify-pin/",
         views.TeamVerifyPinView.as_view(),
         name="verify_pin",
