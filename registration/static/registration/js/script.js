@@ -12,6 +12,7 @@
   var MIN_NON_PREMIER = 8;
   var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
   var allTeams = [];
+  var cachedLogoDataUrl = null;
 
   var form = document.getElementById("team-form");
   if (!form) return;
@@ -353,8 +354,14 @@
     return el ? String(el.value || "").trim() : "";
   }
 
+  function sanitizePhoneInput(rawPhone) {
+    var cleaned = String(rawPhone || "").replace(/[^\d+()\s-]/g, "");
+    var plus = cleaned.charAt(0) === "+" ? "+" : "";
+    return plus + cleaned.replace(/\+/g, "").replace(/[^\d()\s-]/g, "");
+  }
+
   function normalizeAustralianPhone(rawPhone) {
-    var compact = String(rawPhone || "").trim().replace(/[\s().-]/g, "");
+    var compact = sanitizePhoneInput(rawPhone).replace(/[\s().-]/g, "");
     if (/^0[23478]\d{8}$/.test(compact)) return compact;
     if (/^\+61[23478]\d{8}$/.test(compact)) return "0" + compact.slice(3);
     return null;
@@ -545,11 +552,14 @@
     }
 
     var logoInput = document.getElementById("teamLogo");
-    var teamLogo = null;
+    var teamLogo = cachedLogoDataUrl;
     try {
-      teamLogo = await readLogoAsDataUrl(
-        logoInput && logoInput.files && logoInput.files[0] ? logoInput.files[0] : null
-      );
+      if (!teamLogo) {
+        teamLogo = await readLogoAsDataUrl(
+          logoInput && logoInput.files && logoInput.files[0] ? logoInput.files[0] : null
+        );
+        cachedLogoDataUrl = teamLogo;
+      }
     } catch (logoErr) {
       setFieldError("field-logo");
       scrollToFirstError();
@@ -588,14 +598,15 @@
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
         form.reset();
+        cachedLogoDataUrl = null;
         squadBody.innerHTML = "";
         for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
         updateMplNote();
-        try {
-          await loadTeams();
+        if (result.team) {
+          allTeams = allTeams.concat([result.team]);
           updateStats();
-        } catch (_) {
-          /* stats refresh is optional after a successful save */
+        } else {
+          loadTeams().then(updateStats);
         }
         showResultPopup(
           "success",
@@ -654,16 +665,32 @@
 
   var phoneInputLive = document.getElementById("contactPhone");
   if (phoneInputLive) {
+    phoneInputLive.addEventListener("keydown", function (event) {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+        return;
+      }
+      if (!/[0-9+() \-]/.test(event.key)) {
+        event.preventDefault();
+      }
+    });
+    phoneInputLive.addEventListener("paste", function (event) {
+      event.preventDefault();
+      var pasted = event.clipboardData ? event.clipboardData.getData("text") || "" : "";
+      phoneInputLive.value = sanitizePhoneInput(pasted);
+      phoneInputLive.dispatchEvent(new Event("input", { bubbles: true }));
+    });
     phoneInputLive.addEventListener("blur", function () {
       var wrap = document.getElementById("field-contact");
       if (!wrap) return;
-      wrap.classList.toggle(
-        "err",
-        !normalizeAustralianPhone(phoneInputLive.value)
-      );
+      phoneInputLive.value = sanitizePhoneInput(phoneInputLive.value);
+      wrap.classList.toggle("err", !normalizeAustralianPhone(phoneInputLive.value));
     });
     phoneInputLive.addEventListener("input", function () {
       var wrap = document.getElementById("field-contact");
+      var cleaned = sanitizePhoneInput(phoneInputLive.value);
+      if (cleaned !== phoneInputLive.value) {
+        phoneInputLive.value = cleaned;
+      }
       if (wrap && normalizeAustralianPhone(phoneInputLive.value)) {
         wrap.classList.remove("err");
       }
@@ -674,9 +701,17 @@
   if (logoInputLive) {
     logoInputLive.addEventListener("change", function () {
       var wrap = document.getElementById("field-logo");
+      cachedLogoDataUrl = null;
       if (!wrap) return;
       if (logoInputLive.files && logoInputLive.files[0]) {
         wrap.classList.remove("err");
+        readLogoAsDataUrl(logoInputLive.files[0])
+          .then(function (dataUrl) {
+            cachedLogoDataUrl = dataUrl;
+          })
+          .catch(function () {
+            cachedLogoDataUrl = null;
+          });
       } else {
         wrap.classList.add("err");
       }
