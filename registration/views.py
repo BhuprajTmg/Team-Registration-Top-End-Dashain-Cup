@@ -139,7 +139,8 @@ class RegisterView(View):
 
         try:
             logo_bytes, logo_type, logo_name = parse_logo_payload(
-                payload.get("teamLogo") or payload.get("team_logo") or payload.get("logo")
+                payload.get("teamLogo") or payload.get("team_logo") or payload.get("logo"),
+                required=True,
             )
         except forms.ValidationError as exc:
             message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
@@ -150,10 +151,9 @@ class RegisterView(View):
         registration = form.save(commit=False)
         registration.tournament = payload.get("tournament") or TOURNAMENT_NAME
         registration.division = payload.get("division") or DIVISION_NAME
-        if logo_bytes:
-            registration.logo = logo_bytes
-            registration.logo_content_type = logo_type
-            registration.logo_filename = logo_name
+        registration.logo = logo_bytes
+        registration.logo_content_type = logo_type
+        registration.logo_filename = logo_name
         registration.save()
 
         registration.confirmation_email_sent = send_confirmation_email(registration)

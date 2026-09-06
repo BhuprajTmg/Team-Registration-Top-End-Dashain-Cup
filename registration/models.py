@@ -36,7 +36,7 @@ class TeamRegistration(models.Model):
     # Hashed 4-digit PIN used to edit / withdraw the registration publicly.
     pin_hash = models.CharField(max_length=128, blank=True, default="")
 
-    # Optional team logo stored in the DB so it survives Fly redeploys (no volume needed).
+    # Required team logo stored in the DB so it survives Fly redeploys (no volume needed).
     logo = models.BinaryField(blank=True, null=True, editable=False)
     logo_content_type = models.CharField(max_length=64, blank=True, default="")
     logo_filename = models.CharField(max_length=255, blank=True, default="")

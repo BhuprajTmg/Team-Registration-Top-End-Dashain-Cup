@@ -229,7 +229,7 @@
       '<td class="row-num">' +
       idx +
       "</td>" +
-      '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" value="' +
+      '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefillName ? escapeHtml(prefillName) : "") +
       '"></td>' +
       '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"' +
@@ -383,6 +383,29 @@
       missing.push("Team Gmail must end with @gmail.com");
     }
 
+    var logoInput = document.getElementById("teamLogo");
+    var logoFile = logoInput && logoInput.files && logoInput.files[0] ? logoInput.files[0] : null;
+    var logoError = document.getElementById("logo-error");
+    if (!logoFile) {
+      setFieldError("field-logo");
+      if (logoError) {
+        logoError.textContent = "Upload a team logo. This field is required.";
+      }
+      missing.push("Team logo");
+    } else if (!/^image\/(jpeg|jpg|png|webp|gif)$/i.test(logoFile.type)) {
+      setFieldError("field-logo");
+      if (logoError) {
+        logoError.textContent = "Team logo must be a JPG, PNG, WEBP, or GIF image.";
+      }
+      missing.push("Team logo (JPG, PNG, WEBP or GIF only)");
+    } else if (logoFile.size > 1024 * 1024) {
+      setFieldError("field-logo");
+      if (logoError) {
+        logoError.textContent = "Team logo must be 1 MB or smaller.";
+      }
+      missing.push("Team logo (max 1 MB)");
+    }
+
     if (!agreeCheck || !agreeCheck.checked) {
       setFieldError("field-agree");
       missing.push("Confirmation / rules agreement");
@@ -393,11 +416,23 @@
       if (!input.value.trim()) emptyNameInputs.push(input);
     });
 
-    if (players.length < MIN_PLAYERS) {
+    if (emptyNameInputs.length) {
       setFieldError("field-squad");
       emptyNameInputs.forEach(function (input) {
         input.classList.add("is-invalid");
       });
+      if (playersError) {
+        playersError.textContent =
+          "Every player row must have a full name. " +
+          emptyNameInputs.length +
+          " empty " +
+          (emptyNameInputs.length === 1 ? "row is" : "rows are") +
+          " still blank.";
+        playersError.style.display = "block";
+      }
+      missing.push("Player names (every squad row must be filled)");
+    } else if (players.length < MIN_PLAYERS) {
+      setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
           "Enter at least " +
@@ -509,6 +544,16 @@
       );
       return;
     }
+    if (!teamLogo) {
+      setFieldError("field-logo");
+      scrollToFirstError();
+      showResultPopup(
+        "error",
+        "Please complete the form",
+        "Team logo is required."
+      );
+      return;
+    }
 
     var values = validation.values;
     submitBtn.disabled = true;
@@ -567,6 +612,61 @@
   }
 
   form.addEventListener("submit", handleRegistrationSubmit);
+
+  function wireRequiredInput(inputId, fieldId) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    input.addEventListener("blur", function () {
+      if (!String(input.value || "").trim()) {
+        setFieldError(fieldId);
+      } else {
+        var wrap = document.getElementById(fieldId);
+        if (wrap) wrap.classList.remove("err");
+      }
+    });
+    input.addEventListener("input", function () {
+      if (String(input.value || "").trim()) {
+        var wrap = document.getElementById(fieldId);
+        if (wrap) wrap.classList.remove("err");
+      }
+    });
+  }
+
+  wireRequiredInput("teamName", "field-teamname");
+  wireRequiredInput("captainName", "field-captain");
+  wireRequiredInput("contactPhone", "field-contact");
+  wireRequiredInput("gmail", "field-gmail");
+
+  var logoInputLive = document.getElementById("teamLogo");
+  if (logoInputLive) {
+    logoInputLive.addEventListener("change", function () {
+      var wrap = document.getElementById("field-logo");
+      if (!wrap) return;
+      if (logoInputLive.files && logoInputLive.files[0]) {
+        wrap.classList.remove("err");
+      } else {
+        wrap.classList.add("err");
+      }
+    });
+  }
+
+  squadBody.addEventListener("blur", function (event) {
+    if (!event.target || !event.target.classList.contains("name-input")) return;
+    if (!event.target.value.trim()) {
+      event.target.classList.add("is-invalid");
+      setFieldError("field-squad");
+      if (playersError) {
+        playersError.textContent = "Every player row must have a full name.";
+        playersError.style.display = "block";
+      }
+    }
+  }, true);
+  squadBody.addEventListener("input", function (event) {
+    if (!event.target || !event.target.classList.contains("name-input")) return;
+    if (event.target.value.trim()) {
+      event.target.classList.remove("is-invalid");
+    }
+  });
 
   /* ---- Hero registration stats ---- */
   async function loadTeams() {

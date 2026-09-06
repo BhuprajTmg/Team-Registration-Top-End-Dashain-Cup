@@ -1,4 +1,4 @@
-"""Helpers for optional team logo uploads (stored in Postgres as binary)."""
+"""Helpers for required team logo uploads (stored in Postgres as binary)."""
 
 from __future__ import annotations
 
@@ -29,21 +29,21 @@ def normalize_content_type(content_type: str) -> str:
     return ct
 
 
-def parse_logo_payload(raw) -> tuple[bytes | None, str, str]:
+def parse_logo_payload(raw, *, required: bool = False) -> tuple[bytes | None, str, str]:
     """
     Accept a data-URL string from the JSON API and return (bytes, content_type, filename).
 
-    Empty / missing values return (None, "", "").
+    Empty / missing values return (None, "", "") unless required=True.
     """
-    if raw in (None, ""):
+    if raw in (None, "") or (isinstance(raw, str) and not raw.strip()):
+        if required:
+            raise forms.ValidationError("Upload a team logo. This field is required.")
         return None, "", ""
 
     if not isinstance(raw, str):
         raise forms.ValidationError("Team logo must be an image file.")
 
     raw = raw.strip()
-    if not raw:
-        return None, "", ""
 
     match = _DATA_URL_RE.match(raw)
     if not match:

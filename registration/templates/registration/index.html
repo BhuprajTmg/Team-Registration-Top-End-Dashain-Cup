@@ -145,10 +145,10 @@
             <span class="error-text">Enter your team name.</span>
           </div>
           <div id="field-logo">
-            <label for="teamLogo">Team logo <span class="hint">(optional, image file)</span></label>
-            <input type="file" id="teamLogo" name="team_logo" accept="image/png,image/jpeg,image/webp,image/gif" />
-            <span class="hint">JPG, PNG, WEBP or GIF — max 1&nbsp;MB.</span>
-            <span class="error-text">Choose a valid image under 1&nbsp;MB.</span>
+            <label for="teamLogo">Team logo <span class="req">*</span></label>
+            <input type="file" id="teamLogo" name="team_logo" accept="image/png,image/jpeg,image/webp,image/gif" required />
+            <span class="hint">JPG, PNG, WEBP or GIF — max 1&nbsp;MB. Required for every team.</span>
+            <span class="error-text" id="logo-error">Upload a team logo image (JPG, PNG, WEBP or GIF, max 1&nbsp;MB).</span>
           </div>
         </div>
       </fieldset>

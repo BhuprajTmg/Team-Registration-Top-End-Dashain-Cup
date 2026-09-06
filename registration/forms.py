@@ -77,6 +77,15 @@ class TeamRegistrationForm(forms.ModelForm):
         self.fields["squad_size"].required = False
         self.fields["experience"].required = False
         self.fields["notes"].required = False
+        self.fields["team_name"].error_messages["required"] = "Enter your team name."
+        self.fields["manager_name"].error_messages["required"] = (
+            "Enter the contact person's name."
+        )
+        self.fields["phone"].error_messages["required"] = "Enter a contact number."
+        self.fields["gmail"].error_messages["required"] = (
+            "Enter a Gmail address ending in @gmail.com."
+        )
+        self.fields["players"].error_messages["required"] = "Enter the full squad list."
 
     def clean_gmail(self):
         gmail = self.cleaned_data["gmail"].strip().lower()
