@@ -167,7 +167,7 @@
   function closeResultPopup() {
     resultOverlay.classList.remove("is-open");
     resultOverlay.setAttribute("aria-hidden", "true");
-    if (!modalRoot.innerHTML) document.body.style.overflow = "";
+    if (!modalRoot || !modalRoot.innerHTML) document.body.style.overflow = "";
     if (resultReturnFocus && typeof resultReturnFocus.focus === "function") {
       resultReturnFocus.focus();
     }
@@ -311,14 +311,20 @@
       "field-gmail",
       "field-pin",
       "field-pin-confirm",
+      "field-agree",
+      "field-squad",
     ].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.remove("err");
     });
-    agreeRow.classList.remove("err");
-    playersError.style.display = "none";
-    playersError.textContent =
-      "You need at least 7 players to register a 7-a-side squad.";
+    squadBody.querySelectorAll(".name-input").forEach(function (input) {
+      input.classList.remove("is-invalid");
+    });
+    if (playersError) {
+      playersError.style.display = "none";
+      playersError.textContent =
+        "You need at least 7 named players to register a 7-a-side squad.";
+    }
     if (formMsg) {
       formMsg.className = "form-msg";
       formMsg.style.display = "none";
@@ -328,6 +334,125 @@
   function setFieldError(id) {
     var el = document.getElementById(id);
     if (el) el.classList.add("err");
+  }
+
+  function scrollToFirstError() {
+    var first = form.querySelector(".err, .name-input.is-invalid, .players-error[style*='block']");
+    if (!first) return;
+    var target = first.classList.contains("is-invalid")
+      ? first
+      : first.querySelector("input, select, textarea") || first;
+    try {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (typeof target.focus === "function") target.focus({ preventScroll: true });
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function readOptionalField(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || "").trim() : "";
+  }
+
+  function validateRegistrationForm() {
+    clearFieldErrors();
+    var missing = [];
+
+    var teamName = readOptionalField("teamName");
+    var captainName = readOptionalField("captainName");
+    var contactPhone = readOptionalField("contactPhone");
+    var gmail = readOptionalField("gmail");
+    var pinEl = document.getElementById("teamPin");
+    var pinConfirmEl = document.getElementById("teamPinConfirm");
+    var pin = pinEl ? String(pinEl.value || "").trim() : "";
+    var pinConfirm = pinConfirmEl ? String(pinConfirmEl.value || "").trim() : "";
+    var players = collectPlayers(squadBody);
+
+    if (!teamName) {
+      setFieldError("field-teamname");
+      missing.push("Team name");
+    }
+    if (!captainName) {
+      setFieldError("field-captain");
+      missing.push("Contact full name");
+    }
+    if (!contactPhone) {
+      setFieldError("field-contact");
+      missing.push("Phone number");
+    }
+    if (!gmail) {
+      setFieldError("field-gmail");
+      missing.push("Team Gmail");
+    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmail)) {
+      setFieldError("field-gmail");
+      missing.push("Team Gmail must end with @gmail.com");
+    }
+
+    // PIN inputs are optional in the current UI; only validate when present.
+    if (pinEl || pinConfirmEl) {
+      if (!/^[0-9]{4}$/.test(pin)) {
+        setFieldError("field-pin");
+        missing.push("Team PIN (4 digits)");
+      }
+      if (pin !== pinConfirm || !pinConfirm) {
+        setFieldError("field-pin-confirm");
+        missing.push("Confirm PIN (must match)");
+      }
+    }
+
+    if (!agreeCheck || !agreeCheck.checked) {
+      setFieldError("field-agree");
+      missing.push("Confirmation / rules agreement");
+    }
+
+    var emptyNameInputs = [];
+    squadBody.querySelectorAll(".name-input").forEach(function (input) {
+      if (!input.value.trim()) emptyNameInputs.push(input);
+    });
+
+    if (players.length < MIN_PLAYERS) {
+      setFieldError("field-squad");
+      emptyNameInputs.forEach(function (input) {
+        input.classList.add("is-invalid");
+      });
+      if (playersError) {
+        playersError.textContent =
+          "Enter at least " +
+          MIN_PLAYERS +
+          " player names (you have " +
+          players.length +
+          ").";
+        playersError.style.display = "block";
+      }
+      missing.push("At least " + MIN_PLAYERS + " player names");
+    }
+
+    var mplSelected = players.filter(function (p) {
+      return p.mpl;
+    }).length;
+    if (mplSelected > MAX_MPL) {
+      setFieldError("field-squad");
+      if (mplNote) mplNote.classList.add("warn");
+      if (playersError) {
+        playersError.textContent = "A squad may include at most 3 current MPL players.";
+        playersError.style.display = "block";
+      }
+      missing.push("MPL players (max 3)");
+    }
+
+    return {
+      valid: missing.length === 0,
+      missing: missing,
+      values: {
+        teamName: teamName,
+        captainName: captainName,
+        contactPhone: contactPhone,
+        gmail: gmail,
+        pin: pin,
+        players: players,
+      },
+    };
   }
 
   function readLogoAsDataUrl(file) {
@@ -355,60 +480,27 @@
     });
   }
 
-  form.addEventListener("submit", async function (e) {
-    e.preventDefault();
-    clearFieldErrors();
+  async function handleRegistrationSubmit(e) {
+    if (e) e.preventDefault();
 
-    var teamName = document.getElementById("teamName").value.trim();
-    var captainName = document.getElementById("captainName").value.trim();
-    var contactPhone = document.getElementById("contactPhone").value.trim();
-    var gmail = document.getElementById("gmail").value.trim();
-    var pin = document.getElementById("teamPin").value.trim();
-    var pinConfirm = document.getElementById("teamPinConfirm").value.trim();
+    var validation = validateRegistrationForm();
+    if (!validation.valid) {
+      scrollToFirstError();
+      showResultPopup(
+        "error",
+        "Please complete the form",
+        "These items need attention:<ul style=\"text-align:left;margin:12px 0 0;padding-left:1.2rem;\">" +
+          validation.missing
+            .map(function (item) {
+              return "<li>" + escapeHtml(item) + "</li>";
+            })
+            .join("") +
+          "</ul>"
+      );
+      return;
+    }
+
     var logoInput = document.getElementById("teamLogo");
-    var players = collectPlayers(squadBody);
-
-    var valid = true;
-    if (!teamName) {
-      setFieldError("field-teamname");
-      valid = false;
-    }
-    if (!captainName) {
-      setFieldError("field-captain");
-      valid = false;
-    }
-    if (!contactPhone) {
-      setFieldError("field-contact");
-      valid = false;
-    }
-    if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmail)) {
-      setFieldError("field-gmail");
-      valid = false;
-    }
-    if (!/^[0-9]{4}$/.test(pin)) {
-      setFieldError("field-pin");
-      valid = false;
-    }
-    if (pin !== pinConfirm || !pinConfirm) {
-      setFieldError("field-pin-confirm");
-      valid = false;
-    }
-    if (!agreeCheck.checked) {
-      agreeRow.classList.add("err");
-      valid = false;
-    }
-    if (players.length < MIN_PLAYERS) {
-      playersError.style.display = "block";
-      valid = false;
-    }
-    if (players.filter(function (p) { return p.mpl; }).length > MAX_MPL) {
-      mplNote.classList.add("warn");
-      playersError.textContent = "A squad may include at most 3 current MPL players.";
-      playersError.style.display = "block";
-      valid = false;
-    }
-    if (!valid) return;
-
     var teamLogo = null;
     try {
       teamLogo = await readLogoAsDataUrl(
@@ -416,24 +508,32 @@
       );
     } catch (logoErr) {
       setFieldError("field-logo");
-      showResultPopup("error", "Logo upload issue", logoErr.message || "Invalid team logo.");
+      scrollToFirstError();
+      showResultPopup(
+        "error",
+        "Logo upload issue",
+        logoErr.message || "Invalid team logo."
+      );
       return;
     }
 
+    var values = validation.values;
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
 
     try {
-      var result = await apiCall(registerUrl, {
-        teamName: teamName,
-        captainName: captainName,
-        contactPhone: contactPhone,
-        gmail: gmail,
-        pin: pin,
-        players: players,
+      var payload = {
+        teamName: values.teamName,
+        captainName: values.captainName,
+        contactPhone: values.contactPhone,
+        gmail: values.gmail,
+        players: values.players,
         teamLogo: teamLogo,
         agree: true,
-      });
+      };
+      if (values.pin) payload.pin = values.pin;
+
+      var result = await apiCall(registerUrl, payload);
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
         form.reset();
@@ -451,8 +551,8 @@
           "Registration Successful!",
           result.message ||
             "Thanks, <strong>" +
-              escapeHtml(teamName) +
-              "</strong>! Your squad is on the list. Keep your PIN safe — a confirmation is on its way to your Gmail."
+              escapeHtml(values.teamName) +
+              "</strong>! Your squad is on the list."
         );
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
@@ -474,7 +574,9 @@
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit registration";
     }
-  });
+  }
+
+  form.addEventListener("submit", handleRegistrationSubmit);
 
   /* ---- Hero registration stats ---- */
   async function loadTeams() {

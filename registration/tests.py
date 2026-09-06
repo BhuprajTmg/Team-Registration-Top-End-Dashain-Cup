@@ -187,9 +187,21 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.json()["status"], "error")
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
+    def test_pin_is_optional_and_auto_generated(self):
+        payload = {**VALID_PAYLOAD}
+        del payload["pin"]
+        response = self.client.post(
+            reverse("registration:register"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertTrue(bool(team.pin_hash))
+        self.assertFalse(team.check_pin("not-a-pin"))
+
     def test_agreement_is_required(self):
         response = self.post_registration(agree=False)
-
         self.assertEqual(response.status_code, 400)
         self.assertEqual(TeamRegistration.objects.count(), 0)
 

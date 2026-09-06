@@ -49,7 +49,7 @@ class TeamRegistrationForm(forms.ModelForm):
             "required": "Please confirm the details are accurate and accept the tournament rules."
         },
     )
-    pin = forms.CharField(required=True, min_length=4, max_length=4)
+    pin = forms.CharField(required=False, max_length=4)
     players = forms.Field(required=True)
 
     class Meta:
@@ -93,7 +93,12 @@ class TeamRegistrationForm(forms.ModelForm):
         return self.cleaned_data["phone"].strip()
 
     def clean_pin(self):
-        pin = self.cleaned_data["pin"].strip()
+        import random
+
+        pin = (self.cleaned_data.get("pin") or "").strip()
+        if not pin:
+            # PIN fields were removed from the public form — generate one for storage.
+            return f"{random.randint(0, 9999):04d}"
         if not re.fullmatch(r"\d{4}", pin):
             raise forms.ValidationError("Enter a 4-digit PIN.")
         return pin
