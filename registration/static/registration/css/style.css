@@ -1063,6 +1063,56 @@ footer {
 }
 .modal-box.modal-wide { max-width: 580px; }
 .modal-box.rules-modal-box { max-width: 640px; max-height: 88vh; overflow: auto; }
+.modal-box.rules-modal-box .rules-download {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0 0 1.1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, #d8d0c0);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--gold) 10%, #fff);
+}
+.modal-box.rules-modal-box .rules-download p {
+  margin: 0;
+  flex: 1 1 12rem;
+  color: var(--ink-soft, var(--muted));
+  font-size: 0.92rem;
+}
+.modal-box.rules-modal-box .rules-download .btn {
+  flex: 0 0 auto;
+}
+.modal-box.rules-modal-box .toc {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+  border-radius: 12px;
+}
+.modal-box.rules-modal-box .toc h4 {
+  margin: 0 0 0.4rem;
+  color: var(--navy);
+  font-size: 0.95rem;
+}
+.modal-box.rules-modal-box .toc ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+.modal-box.rules-modal-box .toc li { margin: 0.25rem 0; }
+.modal-box.rules-modal-box section h4 {
+  margin: 1.1rem 0 0.45rem;
+  color: var(--navy);
+  font-size: 1rem;
+}
+.modal-box.rules-modal-box section ul {
+  margin: 0.35rem 0 0.75rem;
+  padding-left: 1.2rem;
+}
+.modal-box.rules-modal-box section li { margin: 0.3rem 0; }
+.modal-box.rules-modal-box section p {
+  margin: 0.35rem 0 0.6rem;
+  color: var(--ink-soft, var(--muted));
+}
 .modal-box h3 {
   font-family: var(--font-display);
   font-style: italic;

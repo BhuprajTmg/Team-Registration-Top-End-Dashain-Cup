@@ -188,7 +188,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                         if p.get("jersey")
                         else p.get("name", "")
                     )
-                    + (" [MPL]" if p.get("mpl") else "")
+                    + (" [Premier]" if p.get("mpl") else "")
                 )
                 for p in (team.players or [])
                 if p.get("name")

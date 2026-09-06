@@ -35,8 +35,8 @@
 
     <div class="hero-chips" aria-label="Tournament highlights">
       <span class="chip">Format: 7-a-side</span>
-      <span class="chip">Squad size: 7 to 12 players</span>
-      <span class="chip">Organized by: Gurkhali FC</span>
+      <span class="chip">Matchday squad: 8 to 11</span>
+      <span class="chip">Premier Players: max 3</span>
     </div>
 
     <div class="hero-cta">
@@ -105,7 +105,7 @@
       <div class="step">
         <div class="step-num">1</div>
         <h4>Submit your squad</h4>
-        <p>Fill in the form with your team name, contact person, Gmail, and full squad of 7–12 players.</p>
+        <p>Fill in the form with your team name, contact person, Gmail, and a squad of 8–11 players (max 3 Premier).</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -125,8 +125,10 @@
   <div class="wrap">
     <h2 class="section-title">Team registration form</h2>
     <p class="section-intro">
-      Squads may include a maximum of <strong>12 players</strong>, of whom no more than
-      <strong>3 may be current MPL players</strong> this season. A confirmation email is sent to your team Gmail.
+      Squads may include a maximum of <strong>11 players</strong> for a matchday list.
+      Each squad must include at least <strong>8 non-Premier players</strong>, and no more than
+      <strong>3 Premier Players</strong> (Darwin Men’s Premier League 2026 / Australia Cup).
+      A confirmation email is sent to your team Gmail.
     </p>
 
     <form id="team-form" novalidate
@@ -176,13 +178,13 @@
       </fieldset>
 
       <fieldset id="field-squad">
-        <legend>Squad list <span class="hint">— 7 to 12 players, max 3 marked as MPL</span></legend>
+        <legend>Squad list <span class="hint">— 8 to 11 players, max 3 Premier Players</span></legend>
         <table class="squad-table" id="squadTable">
           <thead>
             <tr>
               <th class="col-num">#</th>
               <th>Player name</th>
-              <th class="col-mpl">Current MPL</th>
+              <th class="col-mpl">Premier Player</th>
               <th class="col-remove"></th>
             </tr>
           </thead>
@@ -190,10 +192,10 @@
         </table>
         <div class="squad-actions">
           <button type="button" class="link-btn" id="add-player-btn">+ Add another player</button>
-          <span class="count"><b id="player-count-label">0</b> of 12 players</span>
+          <span class="count"><b id="player-count-label">0</b> of 11 players</span>
         </div>
-        <p class="form-note" id="mplNote">0 of 3 MPL players selected</p>
-        <div class="players-error" id="players-error">You need at least 7 players to register a 7-a-side squad.</div>
+        <p class="form-note" id="mplNote">0 of 3 Premier Players selected</p>
+        <div class="players-error" id="players-error">You need at least 8 players, including at least 8 non-Premier players.</div>
       </fieldset>
 
       <fieldset id="field-agree">
@@ -201,8 +203,8 @@
         <div class="checkbox-row">
           <input type="checkbox" id="agreeCheck" required />
           <label for="agreeCheck">
-            I confirm the squad details above are accurate, that no more than 3 listed players are current MPL players,
-            and I agree to the <a href="#" id="rules-link">Dashain Cup rules</a>.
+            I confirm the squad details above are accurate, that the Premier Player limit is respected,
+            and I agree to the <a href="#" id="rules-link">official Grace Dashain Cup 7-a-side rulebook</a>.
           </label>
         </div>
         <span class="error-text">Tick the box to confirm you agree to the tournament rules.</span>
@@ -267,69 +269,193 @@
 <div id="modal-root"></div>
 
 <template id="rules-content-template">
+  <div class="rules-download">
+    <p>Official Grace Dashain Cup 7-a-side Rulebook (presented by Gurkhali FC). Review the full PDF, or read the key points below.</p>
+    <a class="btn btn-ghost" href="{% static 'registration/docs/grace-dashain-cup-7aside-rulebook.pdf' %}" target="_blank" rel="noopener">
+      Download official PDF
+    </a>
+  </div>
   <div class="toc">
     <h4>Contents</h4>
     <ol>
-      <li><a href="#r-eligibility">Eligibility &amp; registration</a></li>
-      <li><a href="#r-format">Tournament format</a></li>
-      <li><a href="#r-matchrules">Match rules</a></li>
-      <li><a href="#r-discipline">Discipline &amp; conduct</a></li>
-      <li><a href="#r-kit">Kit &amp; equipment</a></li>
-      <li><a href="#r-withdrawal">Withdrawal &amp; no-shows</a></li>
-      <li><a href="#r-liability">Liability &amp; medical</a></li>
+      <li><a href="#r-identity">Competition identity &amp; purpose</a></li>
+      <li><a href="#r-snapshot">Match-day snapshot</a></li>
+      <li><a href="#r-pitch">Playing area, goals &amp; ball</a></li>
+      <li><a href="#r-squad">Teams, squad &amp; substitutions</a></li>
+      <li><a href="#r-eligibility">Player eligibility &amp; Premier Players</a></li>
+      <li><a href="#r-kit">Kit, equipment &amp; officials</a></li>
+      <li><a href="#r-timing">Match timing &amp; kick-off</a></li>
+      <li><a href="#r-restarts">Scoring &amp; restarts</a></li>
+      <li><a href="#r-fouls">Fouls, free kicks &amp; penalties</a></li>
+      <li><a href="#r-gk">Goalkeeper regulations</a></li>
+      <li><a href="#r-discipline">Disciplinary code</a></li>
+      <li><a href="#r-procedures">Corners, throw-ins &amp; procedures</a></li>
+      <li><a href="#r-interruptions">Interruptions &amp; rescheduling</a></li>
+      <li><a href="#r-forfeits">Late arrival, forfeits &amp; breaches</a></li>
+      <li><a href="#r-integrity">Integrity &amp; disputes</a></li>
+      <li><a href="#r-ack">Team acknowledgement</a></li>
     </ol>
   </div>
+
+  <section id="r-identity">
+    <h4>1. Competition identity &amp; purpose</h4>
+    <p>The Grace Dashain Cup is a community-focused 7-a-side competition presented by Gurkhali FC in the spirit of sporting excellence, inclusion and respect.</p>
+    <ul>
+      <li>These regulations cover match conditions, eligibility, equipment, discipline, forfeits, protests and administration.</li>
+      <li>The competition committee administers the rules, may issue reasonable directions for safety and fairness, and decides unclear matters.</li>
+    </ul>
+  </section>
+
+  <section id="r-snapshot">
+    <h4>2. Match-day snapshot</h4>
+    <ul>
+      <li><strong>Format:</strong> 7-a-side (6 outfield + 1 goalkeeper).</li>
+      <li><strong>Minimum to start/continue:</strong> 5 players.</li>
+      <li><strong>Maximum matchday squad:</strong> 11 players.</li>
+      <li><strong>Substitutes:</strong> rolling; up to 3 substitutes available at one time.</li>
+      <li><strong>Ball:</strong> Size 5.</li>
+      <li><strong>League matches:</strong> 2 × 10 minutes (20 minutes total).</li>
+      <li><strong>Finals:</strong> 2 × 15 minutes (30 minutes total).</li>
+      <li><strong>Offside:</strong> not used.</li>
+      <li><strong>Yellow card:</strong> 5-minute temporary dismissal.</li>
+      <li><strong>Red card:</strong> sent off for the remainder of the match + 1-match suspension.</li>
+      <li><strong>Standard forfeit:</strong> 3–0.</li>
+    </ul>
+  </section>
+
+  <section id="r-pitch">
+    <h4>3. Playing area, goals &amp; ball</h4>
+    <ul>
+      <li>Matches are played on a rectangular 7-a-side field with halfway line, centre mark, penalty/goal areas and corners.</li>
+      <li>Goals are smaller than full-size goals and must be safely secured with nets.</li>
+      <li>A Size 5 ball is used; damaged or unsafe balls may be rejected.</li>
+      <li>Play may be delayed or suspended if the pitch, goals or equipment are unsafe.</li>
+    </ul>
+  </section>
+
+  <section id="r-squad">
+    <h4>4. Teams, squad registration &amp; substitutions</h4>
+    <ul>
+      <li>Full strength is 7 players: 1 goalkeeper and 6 outfield.</li>
+      <li>A team needs at least 5 eligible players to begin or continue; fewer than 5 may lead to a stoppage/forfeit.</li>
+      <li>Maximum 11 players on the official matchday list; only listed players may take part.</li>
+      <li>Substitutions are rolling; no more than 3 substitutes available at once.</li>
+      <li>A sent-off player cannot be replaced to restore full strength.</li>
+      <li>No emergency additions for injury/absence; team officials cannot enter as players.</li>
+    </ul>
+  </section>
+
   <section id="r-eligibility">
-    <h4>1. Eligibility &amp; registration</h4>
+    <h4>5. Player eligibility &amp; Premier Player classification</h4>
+    <p><strong>Core rule:</strong> each squad must contain at least 8 non-Premier players and may contain no more than 3 Premier Players.</p>
     <ul>
-      <li>Each team must register before Sunday, 27 September 2026.</li>
-      <li>A squad must have a minimum of 7 and a maximum of 12 registered players.</li>
-      <li>No more than 3 players may be current MPL players this season.</li>
-      <li>The nominated contact is responsible for the accuracy of the squad list.</li>
+      <li>Only properly registered players may participate.</li>
+      <li>A <strong>Premier Player</strong> is any player who has featured in 5 or more official Darwin Men’s Premier League 2026 matches, including Australia Cup matches.</li>
+      <li>The 3-Premier limit applies to the matchday squad, not only the players on the field.</li>
+      <li>Teams are responsible for checking eligibility before submitting a squad.</li>
+      <li>An ineligible player may result in a 3–0 loss and further disciplinary action.</li>
     </ul>
   </section>
-  <section id="r-format">
-    <h4>2. Tournament format</h4>
-    <ul>
-      <li>7-a-side football at Richardson Park, Darwin NT on Saturday, 3 October 2026.</li>
-      <li>Entry fee is $370 per team, payable after registration is confirmed.</li>
-      <li>Fixtures are issued to team contacts in the week before the Cup.</li>
-    </ul>
-  </section>
-  <section id="r-matchrules">
-    <h4>3. Match rules</h4>
-    <ul>
-      <li>Standard 7-a-side rules as advised by match officials on the day.</li>
-      <li>Teams should be present and ready 15 minutes before kickoff.</li>
-    </ul>
-  </section>
-  <section id="r-discipline">
-    <h4>4. Discipline &amp; conduct</h4>
-    <ul>
-      <li>Abuse of officials, players, or spectators will not be tolerated.</li>
-      <li>Contacts are responsible for the conduct of their players and supporters.</li>
-    </ul>
-  </section>
+
   <section id="r-kit">
-    <h4>5. Kit &amp; equipment</h4>
+    <h4>6. Kit, equipment &amp; match officials</h4>
     <ul>
-      <li>Shin guards are mandatory. Jewellery must be removed before play.</li>
-      <li>Bring a primary and alternate kit in case of a colour clash.</li>
+      <li>Suitable football clothing and shin guards are mandatory; dangerous jewellery must be removed.</li>
+      <li>Teams should wear matching/clearly identifiable colours; colour clashes may require bibs (coin toss).</li>
+      <li>The referee controls the match; in-match decisions are final subject to this rulebook’s competition processes.</li>
     </ul>
   </section>
-  <section id="r-withdrawal">
-    <h4>6. Withdrawal &amp; no-shows</h4>
+
+  <section id="r-timing">
+    <h4>7. Match timing &amp; starting the game</h4>
     <ul>
-      <li>Notify organisers early if withdrawing so the schedule can be adjusted.</li>
-      <li>Contact the organisers by email to edit or withdraw before the closing date.</li>
+      <li>League: two 10-minute halves; finals: two 15-minute halves.</li>
+      <li>Kick-off and restarts follow the referee’s instructions.</li>
+      <li>Teams must be ready at the scheduled kick-off (see late-arrival rules).</li>
     </ul>
   </section>
-  <section id="r-liability">
-    <h4>7. Liability &amp; medical</h4>
+
+  <section id="r-restarts">
+    <h4>8. Ball status, scoring &amp; restarts</h4>
     <ul>
-      <li>Players participate at their own risk and must be fit to play.</li>
-      <li>Basic first aid will be available; organisers are not responsible for medical costs.</li>
+      <li>A goal is scored when the whole of the ball crosses the goal line between the posts and under the crossbar, provided no offence has been committed.</li>
+      <li>Restarts must be taken promptly from the location directed by the referee.</li>
+      <li>Offside is not used in this competition.</li>
     </ul>
+  </section>
+
+  <section id="r-fouls">
+    <h4>9. Fouls, free kicks &amp; penalty kicks</h4>
+    <ul>
+      <li>Fouls and misconduct are penalised under the competition rules as applied by the referee.</li>
+      <li>Unless the referee directs otherwise, free kicks in this competition are indirect.</li>
+      <li>A penalty is awarded for a direct-free-kick offence inside the offending team’s penalty area.</li>
+    </ul>
+  </section>
+
+  <section id="r-gk">
+    <h4>10. Goalkeeper regulations</h4>
+    <ul>
+      <li>The goalkeeper may handle the ball in their own penalty area, subject to the restrictions below.</li>
+      <li>No handling of a deliberate back-pass kicked by a teammate (feet only); breach = indirect free kick.</li>
+      <li>After catching, the goalkeeper must not kick the ball directly beyond halfway with a conventional kick; a drop-kick beyond halfway is permitted.</li>
+      <li>Throwing, rolling, bouncing or playing short is allowed; deliberate time-wasting may be penalised.</li>
+      <li>A direct-kick distribution breach results in an indirect free kick from the halfway line.</li>
+    </ul>
+  </section>
+
+  <section id="r-discipline">
+    <h4>11. Disciplinary code</h4>
+    <ul>
+      <li><strong>Yellow card:</strong> 5-minute temporary dismissal; team plays a player short until the referee authorises return.</li>
+      <li><strong>Red card:</strong> removed for the match; team continues a player short; automatic 1-match suspension (plus any further sanction).</li>
+      <li><strong>Fighting / violent conduct:</strong> zero tolerance — immediate send-off, referral to the committee, and automatic suspension for the remainder of the tournament (no appeal).</li>
+      <li>Teams must control player/official behaviour; abuse or intimidation may bring further sanctions.</li>
+    </ul>
+  </section>
+
+  <section id="r-procedures">
+    <h4>12. Corners, throw-ins &amp; general playing procedures</h4>
+    <ul>
+      <li>All restarts must be prompt and correctly taken; the referee may order a retake.</li>
+      <li>Players must not distract, obstruct or unfairly delay an opponent’s restart.</li>
+      <li>Only authorised team personnel may occupy the designated team area.</li>
+    </ul>
+  </section>
+
+  <section id="r-interruptions">
+    <h4>13. Match interruptions &amp; rescheduling</h4>
+    <ul>
+      <li>Matches may be stopped for severe weather, lighting failure, unsafe conditions, venue issues or other serious problems.</li>
+      <li>Where possible, interrupted matches are completed or replayed on a date set by the competition committee.</li>
+      <li>Teams must comply with rescheduling decisions.</li>
+    </ul>
+  </section>
+
+  <section id="r-forfeits">
+    <h4>14. Late arrival, forfeits &amp; rule breaches</h4>
+    <ul>
+      <li>Teams must be present and ready at kick-off; a 5-minute grace period applies.</li>
+      <li>Failure to field a playable team within the grace period may result in a forfeit.</li>
+      <li>A forfeit is recorded as a 3–0 win to the opposing team.</li>
+      <li>Other serious breaches may also result in a 3–0 forfeit and/or further discipline.</li>
+    </ul>
+  </section>
+
+  <section id="r-integrity">
+    <h4>15. Competition integrity &amp; dispute handling</h4>
+    <ul>
+      <li>Teams must submit accurate registration and eligibility information.</li>
+      <li>Using unregistered players or concealing eligibility may lead to sanction.</li>
+      <li>Raise eligibility/serious breach concerns with officials as soon as reasonably possible.</li>
+      <li>The competition committee’s determination on administration and discipline is final unless another review process is expressly provided.</li>
+    </ul>
+  </section>
+
+  <section id="r-ack">
+    <h4>16. Team acknowledgement</h4>
+    <p>By registering, the team representative confirms the team has reviewed the Official Grace Dashain Cup 7-a-side Rulebook and that all players and officials will comply with the competition requirements and the authority of match officials and the competition committee.</p>
+    <p>Breaches may lead to warning, temporary dismissal, sending-off, suspension, match forfeiture, tournament removal or other sanctions.</p>
   </section>
 </template>
 

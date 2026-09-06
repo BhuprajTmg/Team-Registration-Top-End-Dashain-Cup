@@ -35,7 +35,7 @@ def _display_context(registration):
             continue
         label = f"{name} (#{p.get('jersey')})" if p.get("jersey") else name
         if p.get("mpl"):
-            label = f"{label} [MPL]"
+            label = f"{label} [Premier]"
         players_display.append(label)
     return {
         "registration": registration,
