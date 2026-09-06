@@ -136,18 +136,32 @@ TEMPLATES = [
 WSGI_APPLICATION = "dashain_cup.wsgi.application"
 
 
-# Local default is SQLite. On Render / Railway / similar hosts, set DATABASE_URL
-# to a Postgres connection string (Render provides this automatically when you
-# attach a Postgres database).
+# Local default is SQLite. On Render / Fly / similar hosts, set DATABASE_URL
+# to a Postgres connection string (Neon, Render Postgres, etc.).
 
 _database_url = env_str("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
-DATABASES = {
-    "default": dj_database_url.parse(
-        _database_url,
-        conn_max_age=600,
-        ssl_require=_database_url.startswith("postgres"),
+
+if dj_database_url is not None:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            _database_url,
+            conn_max_age=600,
+            ssl_require=_database_url.startswith("postgres"),
+        )
+    }
+elif _database_url.startswith("sqlite"):
+    # Allow local `runserver` even if dj-database-url isn't installed yet.
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
+        }
+    }
+else:
+    raise ImproperlyConfigured(
+        "DATABASE_URL is set to a non-SQLite database, but the dj-database-url "
+        "package is not installed. Run: pip install -r requirements.txt"
     )
-}
 
 
 # Password validation
