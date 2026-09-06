@@ -2,14 +2,20 @@ import json
 import re
 
 from django import forms
+from django.conf import settings
 from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from .emails import email_is_configured, send_confirmation_email, send_organiser_notification
-from .forms import TeamRegistrationForm, normalize_players
+from .emails import (
+    email_is_configured,
+    queue_registration_emails,
+    send_confirmation_email,
+    send_organiser_notification,
+)
+from .forms import TeamRegistrationForm, normalize_australian_phone, normalize_players
 from .logos import parse_logo_payload
 from .models import TeamRegistration
 
@@ -75,9 +81,9 @@ class RegisterView(View):
     """
     JSON endpoint the front-end form submits to.
 
-    Saves the registration, then auto-replies to the team's Gmail address
-    and notifies the organiser — both sent from the tournament's Gmail
-    account configured in settings/`.env`.
+    Saves the registration, then queues an auto-reply to the team's Gmail
+    address and an organiser notification. Email delivery does not delay the
+    production response.
     """
 
     def post(self, request):
@@ -156,27 +162,38 @@ class RegisterView(View):
         registration.logo_filename = logo_name
         registration.save()
 
-        registration.confirmation_email_sent = send_confirmation_email(registration)
-        registration.organiser_notified = send_organiser_notification(registration)
-        registration.save(update_fields=["confirmation_email_sent", "organiser_notified"])
-
-        if registration.confirmation_email_sent:
+        email_queued = False
+        if settings.REGISTRATION_EMAIL_ASYNC and email_is_configured():
+            queue_registration_emails(registration.pk)
+            email_queued = True
             message = (
-                f"Thanks, {registration.team_name}! Your registration is in. A confirmation has "
-                f"been sent to {registration.gmail}."
-            )
-        elif not email_is_configured():
-            message = (
-                f"Thanks, {registration.team_name}! Your registration was saved, but email "
-                "notifications aren't configured yet — see README.md to connect the tournament "
-                "Gmail account."
+                f"Thanks, {registration.team_name}! Your registration is in. "
+                f"A confirmation email is being sent to {registration.gmail}."
             )
         else:
-            message = (
-                f"Thanks, {registration.team_name}! Your registration is saved and safe, but we "
-                "couldn't send your confirmation email just now. The organisers can see your entry "
-                "and will be in touch."
+            registration.confirmation_email_sent = send_confirmation_email(registration)
+            registration.organiser_notified = send_organiser_notification(registration)
+            registration.save(
+                update_fields=["confirmation_email_sent", "organiser_notified"]
             )
+
+            if registration.confirmation_email_sent:
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration is in. A confirmation "
+                    f"has been sent to {registration.gmail}."
+                )
+            elif not email_is_configured():
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration was saved, but email "
+                    "notifications aren't configured yet — see README.md to connect the tournament "
+                    "Gmail account."
+                )
+            else:
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration is saved and safe, but "
+                    "we couldn't send your confirmation email just now. The organisers can see "
+                    "your entry and will be in touch."
+                )
 
         return JsonResponse(
             {
@@ -184,6 +201,7 @@ class RegisterView(View):
                 "ok": True,
                 "message": message,
                 "confirmation_email_sent": registration.confirmation_email_sent,
+                "email_queued": email_queued,
                 "team": registration.public_dict(),
             }
         )
@@ -227,6 +245,7 @@ class TeamUpdateView(View):
 
         try:
             players = normalize_players(payload.get("players") or [])
+            phone = normalize_australian_phone(phone)
         except forms.ValidationError as exc:
             message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
             return JsonResponse(
