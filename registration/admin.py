@@ -16,6 +16,7 @@ admin.site.index_title = "Tournament Management"
 @admin.register(TeamRegistration)
 class TeamRegistrationAdmin(admin.ModelAdmin):
     list_display = (
+        "logo_thumb",
         "team_name",
         "manager_name",
         "phone_link",
@@ -47,6 +48,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         "organiser_notified",
         "players",
         "logo_preview",
+        "logo_filename",
+        "logo_content_type",
     )
 
     fieldsets = (
@@ -60,6 +63,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                     "home_city",
                     "squad_size",
                     "logo_preview",
+                    "logo_filename",
+                    "logo_content_type",
                     "players",
                 )
             },
@@ -94,14 +99,46 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     def squad_size_display(self, obj):
         return obj.get_squad_size_display() if obj.squad_size else "—"
 
-    @admin.display(description="Team logo")
-    def logo_preview(self, obj):
+    def _logo_url(self, obj):
+        return f"/api/teams/{obj.pk}/logo/"
+
+    @admin.display(description="Logo")
+    def logo_thumb(self, obj):
         if not obj.has_logo:
             return "—"
         return format_html(
-            '<img src="/api/teams/{}/logo/" alt="" style="max-height:80px;max-width:120px;'
-            'border-radius:8px;background:#111;padding:4px;" />',
-            obj.pk,
+            '<a href="{0}" target="_blank" rel="noopener">'
+            '<img src="{0}" alt="Logo for {1}" '
+            'style="height:40px;width:40px;object-fit:cover;border-radius:50%;'
+            'border:1px solid #ccc;background:#fff;" />'
+            "</a>",
+            self._logo_url(obj),
+            obj.team_name,
+        )
+
+    @admin.display(description="Team logo")
+    def logo_preview(self, obj):
+        if not obj.has_logo:
+            return format_html("<em>No logo uploaded</em>")
+        filename = obj.logo_filename or "team-logo"
+        return format_html(
+            '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">'
+            '<a href="{0}" target="_blank" rel="noopener">'
+            '<img src="{0}" alt="Team logo" '
+            'style="max-height:120px;max-width:180px;border-radius:10px;'
+            'background:#111;padding:6px;border:1px solid #444;" />'
+            "</a>"
+            "<div>"
+            "<div><strong>{1}</strong></div>"
+            '<div style="margin-top:6px;">'
+            '<a href="{0}" target="_blank" rel="noopener">Open full size</a>'
+            " &nbsp;|&nbsp; "
+            '<a href="{0}" download="{1}">Download</a>'
+            "</div>"
+            "</div>"
+            "</div>",
+            self._logo_url(obj),
+            filename,
         )
 
     def changelist_view(self, request, extra_context=None):
