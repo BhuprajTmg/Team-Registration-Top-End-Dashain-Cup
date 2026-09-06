@@ -55,36 +55,73 @@
   }
 
   async function apiCall(url, payload) {
-    var res = await fetch(url, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
-      },
-      body: JSON.stringify(payload || {}),
-    });
-    var data = {};
-    try {
-      data = await res.json();
-    } catch (_) {
-      data = { ok: false, status: "error" };
-      if (res.status === 403) {
-        data.message =
-          "Security check failed. Please refresh the page and try registering again.";
-      } else if (res.status >= 500) {
-        data.message =
-          "The server had a problem saving your registration. Please try again in a moment.";
-      } else if (!res.ok) {
-        data.message =
-          "Something went wrong submitting your registration (HTTP " +
-          res.status +
-          "). Please refresh and try again.";
-      }
+    if (!url) {
+      return {
+        ok: false,
+        status: "error",
+        message: "Registration URL is missing. Refresh the page and try again.",
+        _httpOk: false,
+        _status: 0,
+      };
     }
-    data._httpOk = res.ok;
-    data._status = res.status;
-    return data;
+
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeoutId = null;
+    if (controller) {
+      timeoutId = setTimeout(function () {
+        controller.abort();
+      }, 45000);
+    }
+
+    try {
+      var res = await fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify(payload || {}),
+        signal: controller ? controller.signal : undefined,
+      });
+      var data = {};
+      try {
+        data = await res.json();
+      } catch (_) {
+        data = { ok: false, status: "error" };
+        if (res.status === 403) {
+          data.message =
+            "Security check failed. Please refresh the page and try registering again.";
+        } else if (res.status >= 500) {
+          data.message =
+            "The server had a problem saving your registration. Please try again in a moment.";
+        } else if (!res.ok) {
+          data.message =
+            "Something went wrong submitting your registration (HTTP " +
+            res.status +
+            "). Please refresh and try again.";
+        } else {
+          data.message = "The server returned an unexpected response. Please try again.";
+        }
+      }
+      data._httpOk = res.ok;
+      data._status = res.status;
+      return data;
+    } catch (err) {
+      var aborted = err && (err.name === "AbortError" || err.code === 20);
+      return {
+        ok: false,
+        status: "error",
+        message: aborted
+          ? "The server took too long to respond. Check that runserver is still running, and that DATABASE_URL in .env is reachable (or remove it to use local SQLite)."
+          : "Could not reach the registration server. Make sure `python manage.py runserver` is running and check the terminal for errors.",
+        _httpOk: false,
+        _status: 0,
+        _networkError: true,
+      };
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+    }
   }
 
   function teamApiUrl(teamId, action) {
@@ -403,8 +440,12 @@
         squadBody.innerHTML = "";
         for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
         updateMplNote();
-        await loadTeams();
-        updateStats();
+        try {
+          await loadTeams();
+          updateStats();
+        } catch (_) {
+          /* stats refresh is optional after a successful save */
+        }
         showResultPopup(
           "success",
           "Registration Successful!",
@@ -426,7 +467,8 @@
       showResultPopup(
         "error",
         "Registration Failed",
-        "We couldn't reach the server — please check your internet connection and try again."
+        (err && err.message) ||
+          "Could not reach the registration server. Make sure runserver is running and check the terminal for errors."
       );
     } finally {
       submitBtn.disabled = false;

@@ -58,7 +58,7 @@ def parse_logo_payload(raw) -> tuple[bytes | None, str, str]:
         )
 
     try:
-        data = base64.b64decode(match.group(2), validate=True)
+        data = base64.b64decode(match.group(2), validate=False)
     except Exception as exc:
         raise forms.ValidationError("Could not read the team logo file.") from exc
 

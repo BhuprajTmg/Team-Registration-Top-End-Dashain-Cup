@@ -163,6 +163,16 @@ else:
         "package is not installed. Run: pip install -r requirements.txt"
     )
 
+# Fail fast if Postgres (e.g. Neon) is paused or unreachable, instead of hanging
+# the registration request until the browser shows a generic network error.
+_default_db = DATABASES["default"]
+if "postgresql" in (_default_db.get("ENGINE") or ""):
+    _default_db.setdefault("OPTIONS", {})
+    _default_db["OPTIONS"].setdefault("connect_timeout", 5)
+
+# Allow team logo uploads (base64 JSON payload can be ~1.3× the file size).
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators

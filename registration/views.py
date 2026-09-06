@@ -83,18 +83,26 @@ class RegisterView(View):
     def post(self, request):
         try:
             return self._register(request)
-        except Exception:
+        except Exception as exc:
             import logging
 
             logging.getLogger(__name__).exception("Unexpected registration failure")
+            message = (
+                "Something went wrong on the server while saving your registration. "
+                "Please try again in a moment."
+            )
+            exc_name = type(exc).__name__
+            if "OperationalError" in exc_name or "InterfaceError" in exc_name:
+                message = (
+                    "Could not connect to the database. For local testing, remove "
+                    "DATABASE_URL from your .env (use SQLite), or check that your "
+                    "Neon database is awake and reachable."
+                )
             return JsonResponse(
                 {
                     "status": "error",
                     "ok": False,
-                    "message": (
-                        "Something went wrong on the server while saving your registration. "
-                        "Please try again in a moment."
-                    ),
+                    "message": message,
                 },
                 status=500,
             )
