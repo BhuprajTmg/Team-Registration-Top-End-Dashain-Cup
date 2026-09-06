@@ -1,7 +1,6 @@
 /* =====================================================
    Gurkhali FC — Dashain Cup Team Registration
-   Countdown, MPL squad table, Django API, teams list,
-   PIN manage, and result popup.
+   Countdown, MPL squad table, Django API, and result popup.
    ===================================================== */
 
 (function () {
@@ -309,8 +308,6 @@
       "field-captain",
       "field-contact",
       "field-gmail",
-      "field-pin",
-      "field-pin-confirm",
       "field-agree",
       "field-squad",
     ].forEach(function (id) {
@@ -337,7 +334,7 @@
   }
 
   function scrollToFirstError() {
-    var first = form.querySelector(".err, .name-input.is-invalid, .players-error[style*='block']");
+    var first = form.querySelector(".err, .name-input.is-invalid");
     if (!first) return;
     var target = first.classList.contains("is-invalid")
       ? first
@@ -363,10 +360,6 @@
     var captainName = readOptionalField("captainName");
     var contactPhone = readOptionalField("contactPhone");
     var gmail = readOptionalField("gmail");
-    var pinEl = document.getElementById("teamPin");
-    var pinConfirmEl = document.getElementById("teamPinConfirm");
-    var pin = pinEl ? String(pinEl.value || "").trim() : "";
-    var pinConfirm = pinConfirmEl ? String(pinConfirmEl.value || "").trim() : "";
     var players = collectPlayers(squadBody);
 
     if (!teamName) {
@@ -387,18 +380,6 @@
     } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmail)) {
       setFieldError("field-gmail");
       missing.push("Team Gmail must end with @gmail.com");
-    }
-
-    // PIN inputs are optional in the current UI; only validate when present.
-    if (pinEl || pinConfirmEl) {
-      if (!/^[0-9]{4}$/.test(pin)) {
-        setFieldError("field-pin");
-        missing.push("Team PIN (4 digits)");
-      }
-      if (pin !== pinConfirm || !pinConfirm) {
-        setFieldError("field-pin-confirm");
-        missing.push("Confirm PIN (must match)");
-      }
     }
 
     if (!agreeCheck || !agreeCheck.checked) {
@@ -449,7 +430,6 @@
         captainName: captainName,
         contactPhone: contactPhone,
         gmail: gmail,
-        pin: pin,
         players: players,
       },
     };
@@ -522,7 +502,7 @@
     submitBtn.textContent = "Submitting…";
 
     try {
-      var payload = {
+      var result = await apiCall(registerUrl, {
         teamName: values.teamName,
         captainName: values.captainName,
         contactPhone: values.contactPhone,
@@ -530,10 +510,7 @@
         players: values.players,
         teamLogo: teamLogo,
         agree: true,
-      };
-      if (values.pin) payload.pin = values.pin;
-
-      var result = await apiCall(registerUrl, payload);
+      });
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
         form.reset();

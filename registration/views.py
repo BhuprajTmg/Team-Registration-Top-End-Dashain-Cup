@@ -163,20 +163,19 @@ class RegisterView(View):
         if registration.confirmation_email_sent:
             message = (
                 f"Thanks, {registration.team_name}! Your registration is in. A confirmation has "
-                f"been sent to {registration.gmail}. Keep your PIN safe — you'll need it to edit "
-                "this entry."
+                f"been sent to {registration.gmail}."
             )
         elif not email_is_configured():
             message = (
                 f"Thanks, {registration.team_name}! Your registration was saved, but email "
                 "notifications aren't configured yet — see README.md to connect the tournament "
-                "Gmail account. Keep your PIN safe — you'll need it to edit this entry."
+                "Gmail account."
             )
         else:
             message = (
                 f"Thanks, {registration.team_name}! Your registration is saved and safe, but we "
                 "couldn't send your confirmation email just now. The organisers can see your entry "
-                "and will be in touch. Keep your PIN safe — you'll need it to edit this entry."
+                "and will be in touch."
             )
 
         return JsonResponse(

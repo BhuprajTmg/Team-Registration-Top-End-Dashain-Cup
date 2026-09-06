@@ -9,8 +9,6 @@ Here's what we received:
   Squad Size: {{ squad_size_display }}
   Players: {{ players_display_text }}
 
-Keep your 4-digit team PIN safe — you'll need it to edit or withdraw this registration on the website.
-
 We'll be in touch with fixtures and further details closer to the tournament.
 
 Himalayan Hearts, Top End Spirits.
