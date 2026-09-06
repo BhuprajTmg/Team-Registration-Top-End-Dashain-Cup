@@ -1,14 +1,15 @@
 /* =====================================================
    Gurkhali FC — Dashain Cup Team Registration
-   Countdown, MPL squad table, Django API, and result popup.
+   Countdown, Premier Player squad table, Django API, and result popup.
    ===================================================== */
 
 (function () {
   "use strict";
 
-  var MIN_PLAYERS = 7;
-  var MAX_PLAYERS = 12;
+  var MIN_PLAYERS = 8;
+  var MAX_PLAYERS = 11;
   var MAX_MPL = 3;
+  var MIN_NON_PREMIER = 8;
   var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
   var allTeams = [];
 
@@ -189,7 +190,7 @@
 
   function updateMplNote() {
     var checked = mplCount();
-    mplNote.textContent = checked + " of " + MAX_MPL + " MPL players selected";
+    mplNote.textContent = checked + " of " + MAX_MPL + " Premier Players selected";
     mplNote.classList.toggle("warn", checked > MAX_MPL);
   }
 
@@ -198,7 +199,7 @@
     playerCountLabel.textContent = n;
     addPlayerBtn.disabled = n >= MAX_PLAYERS;
     addPlayerBtn.textContent =
-      n >= MAX_PLAYERS ? "Squad full (12 players)" : "+ Add another player";
+      n >= MAX_PLAYERS ? "Squad full (11 players)" : "+ Add another player";
   }
 
   function renumberRows() {
@@ -240,7 +241,7 @@
     tr.querySelector(".remove-player").addEventListener("click", function () {
       if (rowCount() <= MIN_PLAYERS) {
         playersError.textContent =
-          "A 7-a-side squad needs at least " + MIN_PLAYERS + " player rows.";
+          "A registered squad needs at least " + MIN_PLAYERS + " player rows.";
         playersError.style.display = "block";
         return;
       }
@@ -275,7 +276,7 @@
     modalRoot.innerHTML =
       '<div class="modal-backdrop" id="rules-backdrop">' +
       '<div class="modal-box rules-modal-box" role="dialog" aria-modal="true">' +
-      "<h3>Dashain Cup — Rules &amp; Agreement</h3>" +
+      "<h3>Grace Dashain Cup — Official 7-a-side Rulebook</h3>" +
       '<div id="rules-body"></div>' +
       '<div class="modal-actions"><button type="button" class="btn" id="rules-close-btn">Close</button></div>' +
       "</div></div>";
@@ -320,7 +321,7 @@
     if (playersError) {
       playersError.style.display = "none";
       playersError.textContent =
-        "You need at least 7 named players to register a 7-a-side squad.";
+        "You need at least 8 players, including at least 8 non-Premier players.";
     }
     if (formMsg) {
       formMsg.className = "form-msg";
@@ -412,14 +413,26 @@
     var mplSelected = players.filter(function (p) {
       return p.mpl;
     }).length;
+    var nonPremier = players.length - mplSelected;
     if (mplSelected > MAX_MPL) {
       setFieldError("field-squad");
       if (mplNote) mplNote.classList.add("warn");
       if (playersError) {
-        playersError.textContent = "A squad may include at most 3 current MPL players.";
+        playersError.textContent = "A squad may include at most 3 Premier Players.";
         playersError.style.display = "block";
       }
-      missing.push("MPL players (max 3)");
+      missing.push("Premier Players (max 3)");
+    }
+    if (players.length >= MIN_PLAYERS && nonPremier < MIN_NON_PREMIER) {
+      setFieldError("field-squad");
+      if (playersError) {
+        playersError.textContent =
+          "Each squad must include at least 8 non-Premier players (you have " +
+          nonPremier +
+          ").";
+        playersError.style.display = "block";
+      }
+      missing.push("At least 8 non-Premier players");
     }
 
     return {

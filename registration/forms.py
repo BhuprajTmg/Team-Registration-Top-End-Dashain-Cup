@@ -4,8 +4,9 @@ from django import forms
 
 from .models import TeamRegistration
 
-MIN_PLAYERS = 7
-MAX_PLAYERS = 12
+MIN_PLAYERS = 8
+MAX_PLAYERS = 11
+MIN_NON_PREMIER = 8
 
 
 def normalize_players(raw_players):
@@ -29,15 +30,20 @@ def normalize_players(raw_players):
 
     if len(players) < MIN_PLAYERS:
         raise forms.ValidationError(
-            f"You need at least {MIN_PLAYERS} players to register a 7-a-side squad."
+            f"You need at least {MIN_PLAYERS} players on the matchday squad."
         )
     if len(players) > MAX_PLAYERS:
         raise forms.ValidationError(
-            f"A squad can have at most {MAX_PLAYERS} players."
+            f"A matchday squad can have at most {MAX_PLAYERS} players."
         )
     if mpl_count > 3:
         raise forms.ValidationError(
-            "A squad may include at most 3 current MPL players."
+            "A squad may include at most 3 Premier Players."
+        )
+    non_premier = len(players) - mpl_count
+    if non_premier < MIN_NON_PREMIER:
+        raise forms.ValidationError(
+            "Each squad must include at least 8 non-Premier players."
         )
     return players
 
