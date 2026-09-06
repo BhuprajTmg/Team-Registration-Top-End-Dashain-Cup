@@ -28,11 +28,15 @@ def _display_context(registration):
         registration.get_squad_size_display() if registration.squad_size else "Not specified"
     )
     players = registration.players or []
-    players_display = [
-        f"{p.get('name')} (#{p.get('jersey')})" if p.get("jersey") else p.get("name", "")
-        for p in players
-        if p.get("name")
-    ]
+    players_display = []
+    for p in players:
+        name = p.get("name")
+        if not name:
+            continue
+        label = f"{name} (#{p.get('jersey')})" if p.get("jersey") else name
+        if p.get("mpl"):
+            label = f"{label} [MPL]"
+        players_display.append(label)
     return {
         "registration": registration,
         "club_name": settings.CLUB_NAME,

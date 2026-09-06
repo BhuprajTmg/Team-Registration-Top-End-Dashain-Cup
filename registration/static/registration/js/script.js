@@ -1,7 +1,7 @@
 /* =====================================================
    Gurkhali FC — Dashain Cup Team Registration
-   Squad registration UI, public teams list, PIN manage,
-   and Django API + result popup wiring.
+   Countdown, MPL squad table, Django API, teams list,
+   PIN manage, and result popup.
    ===================================================== */
 
 (function () {
@@ -9,16 +9,18 @@
 
   var MIN_PLAYERS = 7;
   var MAX_PLAYERS = 12;
-  var playerIdSeq = 0;
+  var MAX_MPL = 3;
+  var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
   var allTeams = [];
 
   var form = document.getElementById("team-form");
   if (!form) return;
 
-  var playersContainer = document.getElementById("players-container");
+  var squadBody = document.getElementById("squadBody");
   var addPlayerBtn = document.getElementById("add-player-btn");
   var playerCountLabel = document.getElementById("player-count-label");
   var playersError = document.getElementById("players-error");
+  var mplNote = document.getElementById("mplNote");
   var submitBtn = document.getElementById("submit-btn");
   var formMsg = document.getElementById("form-msg");
   var agreeCheck = document.getElementById("agreeCheck");
@@ -35,6 +37,9 @@
 
   var registerUrl = form.dataset.registerUrl;
   var teamsUrl = form.dataset.teamsUrl;
+
+  var yearEl = document.getElementById("year");
+  if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
   function escapeHtml(str) {
     var d = document.createElement("div");
@@ -83,11 +88,31 @@
   }
 
   function teamApiUrl(teamId, action) {
-    // /api/teams/ → /api/teams/<id>/<action>/
     var base = teamsUrl.replace(/\/?$/, "/");
     return base + teamId + "/" + action + "/";
   }
 
+  /* ---- Countdown ---- */
+  function tickCountdown() {
+    var now = Date.now();
+    var diff = Math.max(0, DEADLINE - now);
+    var d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    var h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    var s = Math.floor((diff % (1000 * 60)) / 1000);
+    var set = function (id, val) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = String(val).padStart(2, "0");
+    };
+    set("cd-days", d);
+    set("cd-hours", h);
+    set("cd-mins", m);
+    set("cd-secs", s);
+  }
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+
+  /* ---- Result popup ---- */
   function showResultPopup(type, title, message) {
     resultOverlay.classList.remove("result-success", "result-error");
     resultOverlay.classList.add(type === "success" ? "result-success" : "result-error");
@@ -117,59 +142,106 @@
     if (e.target === resultOverlay) closeResultPopup();
   });
 
-  function addPlayerRow(prefillName, prefillJersey) {
-    var rows = playersContainer.querySelectorAll(".player-row");
-    if (rows.length >= MAX_PLAYERS) return;
-    playerIdSeq++;
-    var row = document.createElement("div");
-    row.className = "player-row";
-    row.dataset.id = "p" + playerIdSeq;
-    var idx = rows.length + 1;
-    row.innerHTML =
-      '<div class="num">' +
-      idx +
-      "</div>" +
-      '<input type="text" class="name-input" placeholder="Player full name" autocomplete="off" value="' +
-      (prefillName ? escapeHtml(prefillName) : "") +
-      '">' +
-      '<input type="text" class="jersey-input" placeholder="No." maxlength="3" value="' +
-      (prefillJersey ? escapeHtml(prefillJersey) : "") +
-      '">' +
-      '<button type="button" class="remove-player" aria-label="Remove player">&times;</button>';
-    playersContainer.appendChild(row);
-    row.querySelector(".remove-player").addEventListener("click", function () {
-      row.remove();
-      renumberRows();
-      updatePlayerCount();
-    });
-    updatePlayerCount();
+  /* ---- Squad table ---- */
+  function rowCount() {
+    return squadBody.querySelectorAll("tr").length;
   }
 
-  function renumberRows() {
-    playersContainer.querySelectorAll(".player-row").forEach(function (r, i) {
-      r.querySelector(".num").textContent = i + 1;
-    });
+  function mplCount() {
+    return squadBody.querySelectorAll('input[type="checkbox"]:checked').length;
+  }
+
+  function updateMplNote() {
+    var checked = mplCount();
+    mplNote.textContent = checked + " of " + MAX_MPL + " MPL players selected";
+    mplNote.classList.toggle("warn", checked > MAX_MPL);
   }
 
   function updatePlayerCount() {
-    var n = playersContainer.querySelectorAll(".player-row").length;
+    var n = rowCount();
     playerCountLabel.textContent = n;
     addPlayerBtn.disabled = n >= MAX_PLAYERS;
+    addPlayerBtn.textContent =
+      n >= MAX_PLAYERS ? "Squad full (12 players)" : "+ Add another player";
+  }
+
+  function renumberRows() {
+    squadBody.querySelectorAll("tr").forEach(function (tr, i) {
+      tr.querySelector(".row-num").textContent = String(i + 1);
+      var nameInput = tr.querySelector(".name-input");
+      var mplInput = tr.querySelector(".mpl-input");
+      nameInput.name = "player_" + (i + 1);
+      mplInput.name = "player_" + (i + 1) + "_mpl";
+    });
+  }
+
+  function wireMplCheckbox(cb) {
+    cb.addEventListener("change", function () {
+      if (mplCount() > MAX_MPL) {
+        this.checked = false;
+      }
+      updateMplNote();
+    });
+  }
+
+  function addPlayerRow(prefillName, prefillMpl) {
+    if (rowCount() >= MAX_PLAYERS) return;
+    var idx = rowCount() + 1;
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td class="row-num">' +
+      idx +
+      "</td>" +
+      '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" value="' +
+      (prefillName ? escapeHtml(prefillName) : "") +
+      '"></td>' +
+      '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"' +
+      (prefillMpl ? " checked" : "") +
+      "></td>" +
+      '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove player">&times;</button></td>';
+    squadBody.appendChild(tr);
+    wireMplCheckbox(tr.querySelector(".mpl-input"));
+    tr.querySelector(".remove-player").addEventListener("click", function () {
+      if (rowCount() <= MIN_PLAYERS) {
+        playersError.textContent =
+          "A 7-a-side squad needs at least " + MIN_PLAYERS + " player rows.";
+        playersError.style.display = "block";
+        return;
+      }
+      tr.remove();
+      renumberRows();
+      updatePlayerCount();
+      updateMplNote();
+      playersError.style.display = "none";
+    });
+    updatePlayerCount();
+    updateMplNote();
   }
 
   addPlayerBtn.addEventListener("click", function () {
     addPlayerRow();
   });
-  for (var i = 0; i < 7; i++) addPlayerRow();
+  for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
 
+  function collectPlayers(tbody) {
+    var players = [];
+    Array.prototype.slice.call(tbody.querySelectorAll("tr")).forEach(function (tr) {
+      var name = tr.querySelector(".name-input").value.trim();
+      var mpl = tr.querySelector(".mpl-input").checked;
+      if (name) players.push({ name: name, jersey: null, mpl: mpl });
+    });
+    return players;
+  }
+
+  /* ---- Rules modal ---- */
   function openRulesModal() {
     var tpl = document.getElementById("rules-content-template");
     modalRoot.innerHTML =
       '<div class="modal-backdrop" id="rules-backdrop">' +
-      '<div class="modal-box rules-modal-box">' +
-      "<h3>Dashain Cup — Rules & Agreement</h3>" +
+      '<div class="modal-box rules-modal-box" role="dialog" aria-modal="true">' +
+      "<h3>Dashain Cup — Rules &amp; Agreement</h3>" +
       '<div id="rules-body"></div>' +
-      '<div class="rules-modal-close-row"><button type="button" class="btn-go" id="rules-close-btn">Close</button></div>' +
+      '<div class="modal-actions"><button type="button" class="btn" id="rules-close-btn">Close</button></div>' +
       "</div></div>";
     document.getElementById("rules-body").appendChild(tpl.content.cloneNode(true));
     function closeRules() {
@@ -207,23 +279,17 @@
     });
     agreeRow.classList.remove("err");
     playersError.style.display = "none";
-    formMsg.className = "form-msg";
-    formMsg.style.display = "none";
+    playersError.textContent =
+      "You need at least 7 players to register a 7-a-side squad.";
+    if (formMsg) {
+      formMsg.className = "form-msg";
+      formMsg.style.display = "none";
+    }
   }
 
   function setFieldError(id) {
     var el = document.getElementById(id);
     if (el) el.classList.add("err");
-  }
-
-  function collectPlayers(container) {
-    var players = [];
-    Array.prototype.slice.call(container.querySelectorAll(".player-row")).forEach(function (r) {
-      var name = r.querySelector(".name-input").value.trim();
-      var jersey = r.querySelector(".jersey-input").value.trim();
-      if (name) players.push({ name: name, jersey: jersey || null });
-    });
-    return players;
   }
 
   form.addEventListener("submit", async function (e) {
@@ -236,7 +302,7 @@
     var gmail = document.getElementById("gmail").value.trim();
     var pin = document.getElementById("teamPin").value.trim();
     var pinConfirm = document.getElementById("teamPinConfirm").value.trim();
-    var players = collectPlayers(playersContainer);
+    var players = collectPlayers(squadBody);
 
     var valid = true;
     if (!teamName) {
@@ -271,10 +337,16 @@
       playersError.style.display = "block";
       valid = false;
     }
+    if (players.filter(function (p) { return p.mpl; }).length > MAX_MPL) {
+      mplNote.classList.add("warn");
+      playersError.textContent = "A squad may include at most 3 current MPL players.";
+      playersError.style.display = "block";
+      valid = false;
+    }
     if (!valid) return;
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Registering…";
+    submitBtn.textContent = "Submitting…";
 
     try {
       var result = await apiCall(registerUrl, {
@@ -289,8 +361,9 @@
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
         form.reset();
-        playersContainer.innerHTML = "";
-        for (var i = 0; i < 7; i++) addPlayerRow();
+        squadBody.innerHTML = "";
+        for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
+        updateMplNote();
         await loadTeams();
         renderTeams();
         showResultPopup(
@@ -299,7 +372,7 @@
           result.message ||
             "Thanks, <strong>" +
               escapeHtml(teamName) +
-              "</strong>! Your squad is on the list. Keep your PIN safe."
+              "</strong>! Your squad is on the list. Keep your PIN safe — a confirmation is on its way to your Gmail."
         );
         window.scrollTo({
           top: document.getElementById("teams").offsetTop - 20,
@@ -321,10 +394,11 @@
       );
     } finally {
       submitBtn.disabled = false;
-      submitBtn.textContent = "Register team";
+      submitBtn.textContent = "Submit registration";
     }
   });
 
+  /* ---- Teams list ---- */
   async function loadTeams() {
     try {
       var res = await fetch(teamsUrl);
@@ -357,46 +431,27 @@
       .join("");
   }
 
-  function updateStats() {
-    document.getElementById("stat-teams").textContent = allTeams.length;
-    var totalPlayers = allTeams.reduce(function (sum, t) {
-      return sum + (t.players ? t.players.length : 0);
-    }, 0);
-    document.getElementById("stat-players").textContent = totalPlayers;
-    var latestLabel = "–";
-    if (allTeams.length) {
-      var sorted = allTeams.slice().sort(function (a, b) {
-        return new Date(b.registeredAt) - new Date(a.registeredAt);
-      });
-      latestLabel =
-        sorted[0].teamName.length > 14
-          ? sorted[0].teamName.slice(0, 13) + "…"
-          : sorted[0].teamName;
-    }
-    document.getElementById("stat-latest").textContent = latestLabel;
-  }
-
   function renderTeams() {
-    updateStats();
     var region = document.getElementById("teams-list-region");
-    var query = (document.getElementById("search-teams").value || "").toLowerCase().trim();
+    var searchEl = document.getElementById("search-teams");
+    var query = (searchEl && searchEl.value ? searchEl.value : "").toLowerCase().trim();
 
     var filtered = allTeams.filter(function (t) {
       if (!query) return true;
       return (
-        t.teamName.toLowerCase().indexOf(query) !== -1 ||
-        t.captainName.toLowerCase().indexOf(query) !== -1
+        (t.teamName || "").toLowerCase().indexOf(query) !== -1 ||
+        (t.captainName || "").toLowerCase().indexOf(query) !== -1
       );
     });
 
     if (!allTeams.length) {
       region.innerHTML =
-        '<div class="teams-empty"><div class="big">No teams yet</div>Be the first to register your squad for the Dashain Cup.</div>';
+        '<div class="team-empty"><strong>No teams yet</strong><br>Be the first to register your squad for the Dashain Cup.</div>';
       return;
     }
     if (!filtered.length) {
       region.innerHTML =
-        '<div class="teams-empty"><div class="big">No matches</div>Try a different team or captain name.</div>';
+        '<div class="team-empty"><strong>No matches</strong><br>Try a different team or contact name.</div>';
       return;
     }
 
@@ -404,15 +459,14 @@
       return new Date(b.registeredAt) - new Date(a.registeredAt);
     });
 
-    var html = '<div class="team-list">';
+    var html = '<div class="teams-list">';
     sorted.forEach(function (t) {
       var rosterHtml = (t.players || [])
         .map(function (p) {
           return (
-            '<div class="roster-item"><span class="jn">' +
-            (p.jersey ? escapeHtml(p.jersey) : "–") +
-            "</span>" +
+            '<div class="roster-item">' +
             escapeHtml(p.name) +
+            (p.mpl ? ' <span class="mpl-tag">MPL</span>' : "") +
             "</div>"
           );
         })
@@ -425,10 +479,10 @@
         escapeHtml(initials(t.teamName)) +
         "</div>" +
         '<div class="team-name-text">' +
-        '<div class="tn">' +
+        "<h4>" +
         escapeHtml(t.teamName) +
-        "</div>" +
-        '<div class="cap">Captain: ' +
+        "</h4>" +
+        '<div class="team-meta">Contact: ' +
         escapeHtml(t.captainName) +
         "</div>" +
         "</div></div>" +
@@ -436,13 +490,13 @@
         '<span class="roster-count">' +
         (t.players ? t.players.length : 0) +
         " players</span>" +
-        '<button type="button" class="manage-btn" data-team-id="' +
+        '<button type="button" class="btn btn-ghost manage-btn" data-team-id="' +
         escapeHtml(t.id) +
         '">Manage</button>' +
-        '<span class="chevron">&#9662;</span>' +
+        '<span class="chevron" aria-hidden="true">&#9662;</span>' +
         "</div></div>" +
         '<div class="team-card-body"><div class="team-card-body-inner">' +
-        '<div class="contact-line">Contact: ' +
+        '<div class="contact-line">Phone: ' +
         escapeHtml(t.contactPhone) +
         "</div>" +
         '<div class="roster-grid">' +
@@ -480,7 +534,8 @@
     });
   }
 
-  document.getElementById("search-teams").addEventListener("input", renderTeams);
+  var searchTeams = document.getElementById("search-teams");
+  if (searchTeams) searchTeams.addEventListener("input", renderTeams);
 
   function closeModal() {
     modalRoot.innerHTML = "";
@@ -496,16 +551,17 @@
     if (!team) return;
     modalRoot.innerHTML =
       '<div class="modal-backdrop" id="pin-backdrop">' +
-      '<div class="modal-box">' +
+      '<div class="modal-box" role="dialog" aria-modal="true">' +
       "<h3>Manage &quot;" +
       escapeHtml(team.teamName) +
       "&quot;</h3>" +
-      "<p>Enter the 4-digit PIN this team set at registration. Only the captain who registered this team can edit or withdraw it.</p>" +
-      '<input type="password" id="pin-input" inputmode="numeric" maxlength="4" placeholder="PIN">' +
+      "<p>Enter the 4-digit PIN this team set at registration.</p>" +
+      '<label for="pin-input">Team PIN</label>' +
+      '<input type="password" id="pin-input" inputmode="numeric" maxlength="4" placeholder="••••">' +
       '<div class="modal-error" id="pin-modal-error"></div>' +
       '<div class="modal-actions">' +
-      '<button type="button" id="pin-cancel">Cancel</button>' +
-      '<button type="button" class="btn-go" id="pin-confirm">Unlock</button>' +
+      '<button type="button" class="btn btn-ghost" id="pin-cancel">Cancel</button>' +
+      '<button type="button" class="btn" id="pin-confirm">Unlock</button>' +
       "</div></div></div>";
 
     var input = document.getElementById("pin-input");
@@ -547,85 +603,110 @@
     });
     if (!team) return;
 
-    var rosterHtml = (team.players || [])
+    var rosterRows = (team.players || [])
       .map(function (p, i) {
         return (
-          '<div class="player-row" data-edit-row="1">' +
-          '<div class="num">' +
+          "<tr>" +
+          '<td class="row-num">' +
           (i + 1) +
-          "</div>" +
-          '<input type="text" class="name-input" value="' +
+          "</td>" +
+          '<td><input type="text" class="name-input" value="' +
           escapeHtml(p.name) +
-          '" placeholder="Player full name">' +
-          '<input type="text" class="jersey-input" value="' +
-          (p.jersey ? escapeHtml(p.jersey) : "") +
-          '" placeholder="No." maxlength="3">' +
-          '<button type="button" class="remove-player" aria-label="Remove player">&times;</button>' +
-          "</div>"
+          '" placeholder="Player full name"></td>' +
+          '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"' +
+          (p.mpl ? " checked" : "") +
+          "></td>" +
+          '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove">&times;</button></td>' +
+          "</tr>"
         );
       })
       .join("");
 
     modalRoot.innerHTML =
       '<div class="modal-backdrop" id="edit-backdrop">' +
-      '<div class="modal-box" style="max-width:560px;max-height:88vh;overflow:auto;">' +
+      '<div class="modal-box modal-wide" role="dialog" aria-modal="true">' +
       '<div class="edit-toolbar">' +
-      '<h3 style="margin:0;">Edit &quot;' +
+      "<h3>Edit &quot;" +
       escapeHtml(team.teamName) +
-      '&quot;</h3>' +
-      '<button type="button" class="btn-delete" id="edit-delete-btn">Withdraw team</button>' +
+      "&quot;</h3>" +
+      '<button type="button" class="btn btn-danger" id="edit-delete-btn">Withdraw team</button>' +
       "</div>" +
-      "<p>Only your club can make these changes. Update details below and save.</p>" +
-      '<label class="hint" style="display:block;margin-bottom:4px;">Team name</label>' +
+      "<p>Update details below and save. Max 3 MPL players.</p>" +
+      '<div class="field-row single"><div><label for="edit-teamName">Team name</label>' +
       '<input type="text" id="edit-teamName" value="' +
       escapeHtml(team.teamName) +
-      '">' +
-      '<label class="hint" style="display:block;margin:10px 0 4px;">Captain name</label>' +
+      '"></div></div>' +
+      '<div class="field-row"><div><label for="edit-captainName">Contact name</label>' +
       '<input type="text" id="edit-captainName" value="' +
       escapeHtml(team.captainName) +
-      '">' +
-      '<label class="hint" style="display:block;margin:10px 0 4px;">Contact number</label>' +
+      '"></div>' +
+      '<div><label for="edit-contactPhone">Phone</label>' +
       '<input type="text" id="edit-contactPhone" value="' +
       escapeHtml(team.contactPhone) +
-      '">' +
-      '<label class="hint" style="display:block;margin:14px 0 6px;font-weight:700;color:var(--ink);">Squad list</label>' +
-      '<div id="edit-players-container">' +
-      rosterHtml +
-      "</div>" +
-      '<button type="button" class="add-player-btn" id="edit-add-player">+ Add player</button>' +
+      '"></div></div>' +
+      "<label>Squad list</label>" +
+      '<table class="squad-table"><thead><tr><th>#</th><th>Player name</th><th>MPL</th><th></th></tr></thead>' +
+      '<tbody id="edit-squad-body">' +
+      rosterRows +
+      "</tbody></table>" +
+      '<button type="button" class="link-btn" id="edit-add-player">+ Add player</button>' +
+      '<p class="form-note" id="edit-mpl-note"></p>' +
       '<div class="modal-error" id="edit-modal-error"></div>' +
       '<div class="modal-actions">' +
-      '<button type="button" id="edit-cancel">Cancel</button>' +
-      '<button type="button" class="btn-go" id="edit-save">Save changes</button>' +
+      '<button type="button" class="btn btn-ghost" id="edit-cancel">Cancel</button>' +
+      '<button type="button" class="btn" id="edit-save">Save changes</button>' +
       "</div></div></div>";
 
-    var editContainer = document.getElementById("edit-players-container");
+    var editBody = document.getElementById("edit-squad-body");
+    var editMplNote = document.getElementById("edit-mpl-note");
 
-    function wireRemove(btn) {
-      btn.addEventListener("click", function () {
-        btn.closest(".player-row").remove();
-        editContainer.querySelectorAll(".player-row").forEach(function (r, i) {
-          r.querySelector(".num").textContent = i + 1;
-        });
+    function editMplCount() {
+      return editBody.querySelectorAll('input[type="checkbox"]:checked').length;
+    }
+
+    function updateEditMpl() {
+      var c = editMplCount();
+      editMplNote.textContent = c + " of " + MAX_MPL + " MPL players selected";
+      editMplNote.classList.toggle("warn", c > MAX_MPL);
+    }
+
+    function renumberEdit() {
+      editBody.querySelectorAll("tr").forEach(function (tr, i) {
+        tr.querySelector(".row-num").textContent = String(i + 1);
       });
     }
 
-    editContainer.querySelectorAll(".remove-player").forEach(wireRemove);
+    function wireEditRow(tr) {
+      var cb = tr.querySelector(".mpl-input");
+      cb.addEventListener("change", function () {
+        if (editMplCount() > MAX_MPL) this.checked = false;
+        updateEditMpl();
+      });
+      tr.querySelector(".remove-player").addEventListener("click", function () {
+        if (editBody.querySelectorAll("tr").length <= MIN_PLAYERS) return;
+        tr.remove();
+        renumberEdit();
+        updateEditMpl();
+      });
+    }
+
+    editBody.querySelectorAll("tr").forEach(wireEditRow);
+    updateEditMpl();
 
     document.getElementById("edit-add-player").addEventListener("click", function () {
-      var rows = editContainer.querySelectorAll(".player-row");
-      if (rows.length >= MAX_PLAYERS) return;
-      var row = document.createElement("div");
-      row.className = "player-row";
-      row.innerHTML =
-        '<div class="num">' +
-        (rows.length + 1) +
-        "</div>" +
-        '<input type="text" class="name-input" placeholder="Player full name">' +
-        '<input type="text" class="jersey-input" placeholder="No." maxlength="3">' +
-        '<button type="button" class="remove-player" aria-label="Remove player">&times;</button>';
-      editContainer.appendChild(row);
-      wireRemove(row.querySelector(".remove-player"));
+      if (editBody.querySelectorAll("tr").length >= MAX_PLAYERS) return;
+      var tr = document.createElement("tr");
+      var idx = editBody.querySelectorAll("tr").length + 1;
+      tr.innerHTML =
+        '<td class="row-num">' +
+        idx +
+        "</td>" +
+        '<td><input type="text" class="name-input" placeholder="Player full name"></td>' +
+        '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"></td>' +
+        '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove">&times;</button></td>';
+      editBody.appendChild(tr);
+      wireEditRow(tr);
+      updateEditMpl();
     });
 
     document.getElementById("edit-cancel").addEventListener("click", closeModal);
@@ -653,14 +734,18 @@
       var newName = document.getElementById("edit-teamName").value.trim();
       var newCaptain = document.getElementById("edit-captainName").value.trim();
       var newContact = document.getElementById("edit-contactPhone").value.trim();
-      var newPlayers = collectPlayers(editContainer);
+      var newPlayers = collectPlayers(editBody);
 
       if (!newName || !newCaptain || !newContact) {
-        errBox.textContent = "Team name, captain, and contact are required.";
+        errBox.textContent = "Team name, contact, and phone are required.";
         return;
       }
       if (newPlayers.length < MIN_PLAYERS) {
         errBox.textContent = "You need at least " + MIN_PLAYERS + " players.";
+        return;
+      }
+      if (newPlayers.filter(function (p) { return p.mpl; }).length > MAX_MPL) {
+        errBox.textContent = "A squad may include at most 3 current MPL players.";
         return;
       }
 
@@ -689,5 +774,6 @@
   });
 
   updatePlayerCount();
+  updateMplNote();
   loadTeams().then(renderTeams);
 })();

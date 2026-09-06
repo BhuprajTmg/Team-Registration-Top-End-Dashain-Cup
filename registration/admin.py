@@ -117,7 +117,14 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
 
         for team in queryset:
             players_text = "; ".join(
-                f"{p.get('name')} (#{p.get('jersey')})" if p.get("jersey") else p.get("name", "")
+                (
+                    (
+                        f"{p.get('name')} (#{p.get('jersey')})"
+                        if p.get("jersey")
+                        else p.get("name", "")
+                    )
+                    + (" [MPL]" if p.get("mpl") else "")
+                )
                 for p in (team.players or [])
                 if p.get("name")
             )

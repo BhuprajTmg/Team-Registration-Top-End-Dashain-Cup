@@ -9,141 +9,238 @@
 <link rel="icon" type="image/webp" href="{% static 'registration/img/logo.webp' %}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="{% static 'registration/css/style.css' %}" />
 </head>
 <body>
+<a class="skip" href="#register">Skip to registration form</a>
 
-
-<div class="hero">
-  <div class="hero-inner">
+<header class="hero">
+  <div class="wrap">
     <div class="hero-top">
-      <picture>
-        <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
-        <img class="crest" src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC crest" width="72" height="72">
-      </picture>
-      <div class="hero-top-text">
-        <div class="eyebrow"><span class="dot"></span>Gurkhali FC presents</div>
-        <div class="club-est">Himalayan Hearts &middot; Top End Spirits &middot; Est. 2023</div>
+      <div class="club-mark">
+        <picture>
+          <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+          <img class="club-logo" src="{% static 'registration/img/logo.png' %}" alt="" width="40" height="40" />
+        </picture>
+        Gurkhali FC
+      </div>
+      <div class="hero-loc">Darwin, Northern Territory</div>
+    </div>
+    <div class="hero-body">
+      <p class="hero-label">Team Registration</p>
+      <h1 class="hero-title">{{ tournament_title }} <em>{{ tournament_year }}</em></h1>
+      <p class="hero-sub">
+        A Dashain-season football gathering for the Gurkhali community — bring your squad to
+        Richardson Park for a day of 7-a-side football, tika, and celebration.
+      </p>
+      <div class="hero-cta">
+        <a href="#register" class="btn">Register your team</a>
       </div>
     </div>
-    <h1 class="title">{{ tournament_title|upper }} <span>{{ tournament_year }}</span></h1>
-    <p class="subtitle">{{ division }} — register your team and lock in your squad before the draw.</p>
-    <div class="hero-meta">
-      <div class="pill">Format: <b>7-a-side</b></div>
-      <div class="pill">Squad size: <b>7 to 12 players</b></div>
-      <div class="pill">Organized by: <b>Gurkhali FC</b></div>
+  </div>
+</header>
+<div class="stitch" aria-hidden="true"></div>
+
+<section class="facts" aria-label="Tournament details">
+  <div class="wrap facts-grid">
+    <div class="fact">
+      <div class="fact-label">Date</div>
+      <div class="fact-value">Saturday, 3 October 2026</div>
     </div>
-    <div class="stat-row">
-      <div class="stat"><div class="num" id="stat-teams">–</div><div class="lab">Teams in</div></div>
-      <div class="stat"><div class="num" id="stat-players">–</div><div class="lab">Players signed</div></div>
-      <div class="stat"><div class="num" id="stat-latest">–</div><div class="lab">Latest entry</div></div>
+    <div class="fact">
+      <div class="fact-label">Venue</div>
+      <div class="fact-value">Richardson Park, Darwin NT</div>
+    </div>
+    <div class="fact">
+      <div class="fact-label">Format</div>
+      <div class="fact-value">7-a-side tournament</div>
+    </div>
+    <div class="fact">
+      <div class="fact-label">Fee</div>
+      <div class="fact-value">$370 per team</div>
+    </div>
+  </div>
+</section>
+
+<div class="deadline">
+  <div class="wrap deadline-inner">
+    <div class="deadline-copy">
+      <h3>Registration closes soon</h3>
+      <p>Get your squad list in by <strong>Sunday, 27 September 2026</strong> so fixtures and player eligibility can be sorted before the day.</p>
+    </div>
+    <div class="clock" id="countdown" aria-live="polite">
+      <div class="clock-unit"><div class="clock-num" id="cd-days">00</div><div class="clock-word">Days</div></div>
+      <div class="clock-unit"><div class="clock-num" id="cd-hours">00</div><div class="clock-word">Hours</div></div>
+      <div class="clock-unit"><div class="clock-num" id="cd-mins">00</div><div class="clock-word">Minutes</div></div>
+      <div class="clock-unit"><div class="clock-num" id="cd-secs">00</div><div class="clock-word">Seconds</div></div>
     </div>
   </div>
 </div>
 
-<div class="wrap">
-
-  <section class="block" id="register">
-    <div class="section-head">
-      <p class="kicker">Step 1</p>
-      <h2>Register your team</h2>
-      <p>Fill in your team and squad details below. Every registered player shows up in the public team list once you submit.</p>
+<section class="how" aria-label="How to register">
+  <div class="wrap">
+    <h2 class="section-title">How registration works</h2>
+    <p class="section-intro">Three steps between now and kickoff.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h4>Submit your squad</h4>
+        <p>Fill in the form with your team name, contact person, Gmail, PIN, and full squad of 7–12 players.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h4>Pay the entry fee</h4>
+        <p>Once your entry is confirmed by email, settle the $370 team fee to lock in your spot.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h4>Get your fixtures</h4>
+        <p>Match schedules and ground rules go out to team contacts in the week before the Cup.</p>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="card">
-      <form id="team-form" novalidate data-register-url="{% url 'registration:register' %}" data-teams-url="{% url 'registration:teams' %}">
-        {% csrf_token %}
-        <div class="field-row">
-          <div class="field full" id="field-teamname">
+<section class="form-section" id="register">
+  <div class="wrap">
+    <h2 class="section-title">Team registration form</h2>
+    <p class="section-intro">
+      Squads may include a maximum of <strong>12 players</strong>, of whom no more than
+      <strong>3 may be current MPL players</strong> this season. A confirmation email is sent to your team Gmail.
+    </p>
+
+    <form id="team-form" novalidate
+      data-register-url="{% url 'registration:register' %}"
+      data-teams-url="{% url 'registration:teams' %}">
+      {% csrf_token %}
+
+      <fieldset>
+        <legend>Team details</legend>
+        <div class="field-row single" id="field-teamname">
+          <div>
             <label for="teamName">Team name <span class="req">*</span></label>
-            <input type="text" id="teamName" name="team_name" placeholder="e.g. Pokhara Panthers" autocomplete="organization">
+            <input type="text" id="teamName" name="team_name" autocomplete="organization" required />
             <span class="error-text">Enter your team name.</span>
           </div>
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Contact person</legend>
         <div class="field-row">
-          <div class="field" id="field-captain">
-            <label for="captainName">Captain name <span class="req">*</span></label>
-            <input type="text" id="captainName" name="manager_name" placeholder="Full name" autocomplete="name">
-            <span class="error-text">Enter the captain's name.</span>
+          <div id="field-captain">
+            <label for="captainName">Full name <span class="req">*</span></label>
+            <input type="text" id="captainName" name="manager_name" autocomplete="name" required />
+            <span class="error-text">Enter the contact person's name.</span>
           </div>
-          <div class="field" id="field-contact">
-            <label for="contactPhone">Contact number <span class="req">*</span></label>
-            <input type="tel" id="contactPhone" name="phone" placeholder="e.g. 0400 000 000" autocomplete="tel">
+          <div id="field-contact">
+            <label for="contactPhone">Phone number <span class="req">*</span></label>
+            <input type="tel" id="contactPhone" name="phone" autocomplete="tel" required />
             <span class="error-text">Enter a contact number.</span>
           </div>
         </div>
-        <div class="field-row">
-          <div class="field full" id="field-gmail">
+        <div class="field-row single" id="field-gmail">
+          <div>
             <label for="gmail">Team Gmail <span class="req">*</span></label>
-            <input type="email" id="gmail" name="gmail" placeholder="yourteam@gmail.com" autocomplete="email"
-              pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$"
-              title="Please enter a valid Gmail address (must end with @gmail.com)">
-            <span class="hint">Used only to send your registration confirmation — not shown on the public team list.</span>
+            <input type="email" id="gmail" name="gmail" placeholder="yourteam@gmail.com" autocomplete="email" required />
+            <span class="hint">Used to send your registration confirmation — must end with @gmail.com.</span>
             <span class="error-text">Enter a Gmail address ending in @gmail.com.</span>
           </div>
         </div>
         <div class="field-row">
-          <div class="field" id="field-pin">
-            <label for="teamPin">Set a team PIN (4 digits) <span class="req">*</span></label>
-            <input type="password" id="teamPin" placeholder="e.g. 4821" inputmode="numeric" maxlength="4" autocomplete="off">
-            <span class="hint">Only the captain with this PIN can edit or withdraw this registration later. Keep it safe.</span>
+          <div id="field-pin">
+            <label for="teamPin">Team PIN (4 digits) <span class="req">*</span></label>
+            <input type="password" id="teamPin" inputmode="numeric" maxlength="4" autocomplete="off" required />
+            <span class="hint">Needed later to edit or withdraw this registration.</span>
             <span class="error-text">Enter a 4-digit PIN.</span>
           </div>
-          <div class="field" id="field-pin-confirm">
+          <div id="field-pin-confirm">
             <label for="teamPinConfirm">Confirm PIN <span class="req">*</span></label>
-            <input type="password" id="teamPinConfirm" placeholder="Repeat the PIN" inputmode="numeric" maxlength="4" autocomplete="off">
+            <input type="password" id="teamPinConfirm" inputmode="numeric" maxlength="4" autocomplete="off" required />
             <span class="error-text">PINs don't match.</span>
           </div>
         </div>
+      </fieldset>
 
-        <div class="players-head">
-          <h3>Squad list</h3>
-          <div class="count"><b id="player-count-label">0</b> of 12 players added</div>
+      <fieldset>
+        <legend>Squad list <span class="hint">— 7 to 12 players, max 3 marked as MPL</span></legend>
+        <table class="squad-table" id="squadTable">
+          <thead>
+            <tr>
+              <th class="col-num">#</th>
+              <th>Player name</th>
+              <th class="col-mpl">Current MPL</th>
+              <th class="col-remove"></th>
+            </tr>
+          </thead>
+          <tbody id="squadBody"></tbody>
+        </table>
+        <div class="squad-actions">
+          <button type="button" class="link-btn" id="add-player-btn">+ Add another player</button>
+          <span class="count"><b id="player-count-label">0</b> of 12 players</span>
         </div>
-        <div id="players-container"></div>
-        <button type="button" class="add-player-btn" id="add-player-btn">+ Add player</button>
+        <p class="form-note" id="mplNote">0 of 3 MPL players selected</p>
         <div class="players-error" id="players-error">You need at least 7 players to register a 7-a-side squad.</div>
+      </fieldset>
 
-        <div class="agree-row" id="field-agree">
-          <label class="agree-label">
-            <input type="checkbox" id="agreeCheck">
-            <span>I have read and agree to the <a href="#" id="rules-link">Dashain Cup rules and tournament agreement</a> on behalf of my team.</span>
+      <fieldset id="field-agree">
+        <legend>Confirmation</legend>
+        <div class="checkbox-row">
+          <input type="checkbox" id="agreeCheck" required />
+          <label for="agreeCheck">
+            I confirm the squad details above are accurate, that no more than 3 listed players are current MPL players,
+            and I agree to the <a href="#" id="rules-link">Dashain Cup rules</a>.
           </label>
-          <span class="error-text">Tick the box to confirm you agree to the tournament rules.</span>
         </div>
+        <span class="error-text">Tick the box to confirm you agree to the tournament rules.</span>
+      </fieldset>
 
-        <div class="submit-row">
-          <button type="submit" class="btn-primary" id="submit-btn">Register team</button>
-          <span class="submit-note">Minimum 7 players, maximum 12 (starting seven plus subs).</span>
-        </div>
-        <div class="form-msg" id="form-msg"></div>
-      </form>
-    </div>
-  </section>
+      <div class="submit-row">
+        <button type="submit" class="btn" id="submit-btn">Submit registration</button>
+        <span class="form-status">Fee of $370 is payable once your entry is confirmed.</span>
+      </div>
+      <div class="form-msg" id="form-msg"></div>
+    </form>
+  </div>
+</section>
 
-  <section class="block" id="teams">
-    <div class="section-head">
-      <p class="kicker">Step 2</p>
-      <h2>Registered teams</h2>
-      <p>Every team that has entered the Dashain Cup so far. Tap a team to see its full squad.</p>
-    </div>
+<section class="teams-section" id="teams">
+  <div class="wrap">
+    <h2 class="section-title">Registered teams</h2>
+    <p class="section-intro">Every team that has entered so far. Tap a team to see its squad. Use Manage + PIN to edit.</p>
     <div class="teams-toolbar">
-      <input type="text" id="search-teams" placeholder="Search teams or captains...">
+      <input type="text" id="search-teams" placeholder="Search teams or contacts…" />
     </div>
     <div id="teams-list-region">
       <div class="loading-note">Loading registered teams…</div>
     </div>
-  </section>
+  </div>
+</section>
 
-</div>
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-club">
+        <h3>Gurkhali FC</h3>
+        <p>A community football club bringing the Gurkhali community together through sport, in Darwin, Northern Territory.</p>
+      </div>
+      <div class="footer-contact">
+        <div>Richardson Park, Darwin NT</div>
+        <div><a href="mailto:Gurkhalifc@gmail.com">Gurkhalifc@gmail.com</a></div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Gurkhali FC. All rights reserved.</span>
+      <span>{{ tournament }} — 7-a-side, Richardson Park.</span>
+    </div>
+  </div>
+</footer>
 
-
-<!-- Result Popup (registration success / failure) -->
 <div class="result-overlay" id="resultOverlay" aria-hidden="true">
   <div class="result-card" id="resultCard" role="alertdialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultMessage">
     <button class="result-close" id="resultClose" type="button" aria-label="Close">&times;</button>
-    <div class="result-icon" id="resultIcon" aria-hidden="true">
+    <div class="result-icon" aria-hidden="true">
       <svg class="result-icon-success" viewBox="0 0 52 52" width="56" height="56">
         <circle class="result-icon-circle" cx="26" cy="26" r="24" fill="none" />
         <path class="result-icon-check" fill="none" d="M14 27l7 7 17-17" />
@@ -156,7 +253,7 @@
     </div>
     <h3 class="result-title" id="resultTitle"></h3>
     <p class="result-message" id="resultMessage"></p>
-    <button type="button" class="btn-primary result-action" id="resultAction">Done</button>
+    <button type="button" class="btn result-action" id="resultAction">Done</button>
   </div>
 </div>
 
@@ -166,115 +263,68 @@
   <div class="toc">
     <h4>Contents</h4>
     <ol>
-      <li><a href="#r-eligibility">Eligibility & registration</a></li>
+      <li><a href="#r-eligibility">Eligibility &amp; registration</a></li>
       <li><a href="#r-format">Tournament format</a></li>
       <li><a href="#r-matchrules">Match rules</a></li>
-      <li><a href="#r-discipline">Discipline & conduct</a></li>
-      <li><a href="#r-kit">Kit & equipment</a></li>
-      <li><a href="#r-officials">Officials & decisions</a></li>
-      <li><a href="#r-withdrawal">Withdrawal & no-shows</a></li>
-      <li><a href="#r-liability">Liability & medical</a></li>
-      <li><a href="#r-fairplay">Fair play & anti-discrimination</a></li>
+      <li><a href="#r-discipline">Discipline &amp; conduct</a></li>
+      <li><a href="#r-kit">Kit &amp; equipment</a></li>
+      <li><a href="#r-withdrawal">Withdrawal &amp; no-shows</a></li>
+      <li><a href="#r-liability">Liability &amp; medical</a></li>
     </ol>
   </div>
-
   <section id="r-eligibility">
-    <h4>1. Eligibility & registration</h4>
+    <h4>1. Eligibility &amp; registration</h4>
     <ul>
-      <li>Each team must register through the official Dashain Cup registration portal before the published closing date.</li>
+      <li>Each team must register before Sunday, 27 September 2026.</li>
       <li>A squad must have a minimum of 7 and a maximum of 12 registered players.</li>
-      <li>Every registered team must nominate one captain who is the point of contact for all tournament communication and is responsible for the accuracy of the squad list.</li>
-      <li>A player may only be registered for one team in the tournament. Playing for a second team without written permission from the organizers results in disqualification of both teams' matches involving that player.</li>
-      <li>By registering, the captain confirms that all listed players have agreed to participate and that the information submitted is accurate.</li>
+      <li>No more than 3 players may be current MPL players this season.</li>
+      <li>The nominated contact is responsible for the accuracy of the squad list.</li>
     </ul>
   </section>
-
   <section id="r-format">
     <h4>2. Tournament format</h4>
     <ul>
-      <li>7-a-side football: 7 players per side on the pitch at kickoff, including the goalkeeper.</li>
-      <li>Rolling substitutions are permitted from the full registered squad at any stoppage in play, with the referee's acknowledgement.</li>
-      <li>Group stage matches are 2 x 20-minute halves with a 5-minute half-time break. Knockout matches (quarter-finals onward) are 2 x 25-minute halves.</li>
-      <li>Group standings are decided by points (win = 3, draw = 1, loss = 0), then goal difference, then goals scored, then head-to-head result.</li>
-      <li>Knockout matches level after full time go straight to a penalty shootout (no extra time), unless organizers announce otherwise before the match.</li>
+      <li>7-a-side football at Richardson Park, Darwin NT on Saturday, 3 October 2026.</li>
+      <li>Entry fee is $370 per team, payable after registration is confirmed.</li>
+      <li>Fixtures are issued to team contacts in the week before the Cup.</li>
     </ul>
   </section>
-
   <section id="r-matchrules">
     <h4>3. Match rules</h4>
     <ul>
-      <li>Offside does not apply in 7-a-side matches.</li>
-      <li>Goalkeepers may not pick up a deliberate back-pass from a teammate's foot.</li>
-      <li>Slide tackles are permitted only when there is no contact risk to the opponent; reckless or dangerous tackles are cardable at the referee's discretion.</li>
-      <li>All free kicks are indirect within the opponent's penalty area unless the referee signals otherwise.</li>
-      <li>Matches kick off at the scheduled time. Teams should be present and ready 15 minutes before kickoff.</li>
+      <li>Standard 7-a-side rules as advised by match officials on the day.</li>
+      <li>Teams should be present and ready 15 minutes before kickoff.</li>
     </ul>
   </section>
-
   <section id="r-discipline">
-    <h4>4. Discipline & conduct</h4>
+    <h4>4. Discipline &amp; conduct</h4>
     <ul>
-      <li>Standard yellow and red card discipline applies. Two yellow cards in a match result in a red card and an early finish for that player.</li>
-      <li>A red card carries an automatic one-match suspension for the player's next scheduled match; serious offenses may result in a longer ban at the organizing committee's discretion.</li>
-      <li>Abuse of match officials, other players, or spectators — verbal or physical — will not be tolerated and can result in the offending team's disqualification from the tournament.</li>
-      <li>Captains are responsible for the conduct of their players and any accompanying supporters.</li>
+      <li>Abuse of officials, players, or spectators will not be tolerated.</li>
+      <li>Contacts are responsible for the conduct of their players and supporters.</li>
     </ul>
   </section>
-
   <section id="r-kit">
-    <h4>5. Kit & equipment</h4>
+    <h4>5. Kit &amp; equipment</h4>
     <ul>
-      <li>Teams must bring a primary and an alternate playing kit to every match in case of a colour clash.</li>
-      <li>Shin guards are mandatory for every player on the pitch. Players without shin guards will not be permitted to play.</li>
-      <li>Jewellery, watches, and other items the referee deems unsafe must be removed before play.</li>
-      <li>Studded or moulded football boots are recommended depending on the playing surface; the organizers will confirm surface type before the tournament.</li>
+      <li>Shin guards are mandatory. Jewellery must be removed before play.</li>
+      <li>Bring a primary and alternate kit in case of a colour clash.</li>
     </ul>
   </section>
-
-  <section id="r-officials">
-    <h4>6. Officials & decisions</h4>
-    <ul>
-      <li>The referee's decision on all matters of play is final.</li>
-      <li>Disputes over eligibility, scheduling, or standings are decided by the Dashain Cup organizing committee (Gurkhali FC), whose decision is final.</li>
-      <li>Any formal complaint must be submitted in writing by the team captain within 24 hours of the match in question.</li>
-    </ul>
-  </section>
-
   <section id="r-withdrawal">
-    <h4>7. Withdrawal & no-shows</h4>
+    <h4>6. Withdrawal &amp; no-shows</h4>
     <ul>
-      <li>A team that withdraws after the registration closing date should notify the organizers as early as possible so the schedule can be adjusted.</li>
-      <li>A team that fails to field the minimum number of players within 10 minutes of the scheduled kickoff forfeits the match 0–3 to their opponent.</li>
-      <li>Repeated no-shows may result in exclusion from future Dashain Cup tournaments.</li>
+      <li>Notify organisers early if withdrawing so the schedule can be adjusted.</li>
+      <li>Use your team PIN on this site to edit or withdraw before the closing date.</li>
     </ul>
   </section>
-
   <section id="r-liability">
-    <h4>8. Liability & medical</h4>
+    <h4>7. Liability &amp; medical</h4>
     <ul>
-      <li>Football carries an inherent risk of injury. Every player participates at their own risk, and registration is confirmation that each player is fit to play.</li>
-      <li>The organizers will have basic first aid available at the venue but are not responsible for medical costs arising from injuries sustained during the tournament.</li>
-      <li>Captains should ensure any player with a known medical condition relevant to physical activity has disclosed it and is cleared to participate.</li>
+      <li>Players participate at their own risk and must be fit to play.</li>
+      <li>Basic first aid will be available; organisers are not responsible for medical costs.</li>
     </ul>
   </section>
-
-  <section id="r-fairplay">
-    <h4>9. Fair play & anti-discrimination</h4>
-    <ul>
-      <li>The Dashain Cup is open to all backgrounds and communities. Discriminatory language or behaviour of any kind toward opponents, officials, or spectators is grounds for immediate disqualification.</li>
-      <li>Gurkhali FC expects every participant to play with respect for opponents and the spirit of the Dashain festival that brings the tournament together.</li>
-    </ul>
-    <div class="note">These rules may be refined before the final draw. Any changes will be communicated to registered team captains directly.</div>
-  </section>
-
-  <div class="agree-note-box">
-    <h4>Team agreement</h4>
-    <p>By ticking the agreement box on the registration form, the team captain confirms, on behalf of the whole squad, that they have read and understood the rules above, that the players listed are accurate and eligible, and that the team agrees to abide by the decisions of the match officials and the Dashain Cup organizing committee.</p>
-  </div>
 </template>
-
-<footer>{{ tournament }} — organized by Gurkhali FC. Registrations are visible to everyone with this link.</footer>
-
 
 <script src="{% static 'registration/js/script.js' %}"></script>
 </body>

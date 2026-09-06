@@ -14,14 +14,18 @@ def normalize_players(raw_players):
         raise forms.ValidationError("Squad list is required.")
 
     players = []
+    mpl_count = 0
     for item in raw_players:
         if not isinstance(item, dict):
             continue
         name = str(item.get("name") or "").strip()
         jersey_raw = item.get("jersey")
         jersey = str(jersey_raw).strip() if jersey_raw not in (None, "") else None
+        mpl = bool(item.get("mpl"))
         if name:
-            players.append({"name": name, "jersey": jersey})
+            if mpl:
+                mpl_count += 1
+            players.append({"name": name, "jersey": jersey, "mpl": mpl})
 
     if len(players) < MIN_PLAYERS:
         raise forms.ValidationError(
@@ -30,6 +34,10 @@ def normalize_players(raw_players):
     if len(players) > MAX_PLAYERS:
         raise forms.ValidationError(
             f"A squad can have at most {MAX_PLAYERS} players."
+        )
+    if mpl_count > 3:
+        raise forms.ValidationError(
+            "A squad may include at most 3 current MPL players."
         )
     return players
 

@@ -131,6 +131,26 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
+    def test_too_many_mpl_players_is_rejected(self):
+        players = [
+            {"name": f"Player {i}", "jersey": str(i), "mpl": i <= 4}
+            for i in range(1, 8)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("MPL", response.json()["message"])
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_mpl_flag_is_saved(self):
+        players = [
+            {"name": f"Player {i}", "jersey": str(i), "mpl": i <= 2}
+            for i in range(1, 8)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(sum(1 for p in team.players if p.get("mpl")), 2)
+
     def test_non_gmail_address_is_rejected(self):
         response = self.post_registration(gmail="team@yahoo.com")
 
