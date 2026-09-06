@@ -1,16 +1,14 @@
-# Fly.io app config — always-on free-tier friendly deploy.
+# Fly.io app config for Gurkhali FC Dashain Cup.
 # Docs: https://fly.io/docs/
 #
-# First-time setup (from your laptop, in this repo):
-#   1. Install flyctl: https://fly.io/docs/hands-on/install-flyctl/
-#   2. fly auth login
-#   3. fly launch --no-deploy   # accept this fly.toml; do NOT create a Fly Postgres
-#   4. Create a free Neon DB (https://neon.tech) and set secrets (see README)
-#   5. fly deploy
+# Deploy from your laptop (after fly auth login + billing):
+#   fly apps create gurkhalifc-dashain-cup
+#   fly secrets set ...   # see README
+#   fly deploy -a gurkhalifc-dashain-cup
 #
-# Keep at least 1 machine running so the site does not sleep.
+# Live URL: https://gurkhalifc-dashain-cup.fly.dev/
 
-app = 'dashain-cup'
+app = 'gurkhalifc-dashain-cup'
 primary_region = 'syd'
 
 [build]
