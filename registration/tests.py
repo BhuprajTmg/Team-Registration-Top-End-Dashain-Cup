@@ -85,9 +85,13 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, 'id="agreeTermsCheck"')
         self.assertContains(response, "Bank statement screenshot")
         self.assertContains(response, 'id="teamCategory"')
-        self.assertContains(response, "Select Men's or Veteran")
+        self.assertContains(response, "Select Female, Kids, Men's or Veteran")
+        self.assertContains(response, 'value="female"')
+        self.assertContains(response, 'value="kids"')
         self.assertContains(response, 'value="veteran"')
         self.assertContains(response, 'value="mens"')
+        self.assertContains(response, "Friday, 25 September 2026")
+        self.assertNotContains(response, "27 September 2026")
         html = response.content.decode()
         self.assertLess(
             html.find('id="field-category"'),
@@ -410,13 +414,28 @@ class RegistrationEndpointTests(TestCase):
     def test_missing_category_is_rejected(self):
         response = self.post_registration(category="")
         self.assertEqual(response.status_code, 400)
-        self.assertIn("Men's or Veteran", response.json()["message"])
+        self.assertIn("Female, Kids, Men's or Veteran", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
     def test_invalid_category_is_rejected(self):
         response = self.post_registration(category="mixed")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_female_and_kids_categories_are_saved(self):
+        female = self.post_registration(category="female", team_name="Female FC")
+        self.assertEqual(female.status_code, 200)
+        team = TeamRegistration.objects.get(team_name="Female FC")
+        self.assertEqual(team.category, TeamRegistration.CATEGORY_FEMALE)
+        self.assertEqual(team.get_category_display(), "Female")
+
+        TeamRegistration.objects.all().delete()
+        kids = self.post_registration(category="kids", team_name="Kids FC")
+        self.assertEqual(kids.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(team.category, TeamRegistration.CATEGORY_KIDS)
+        self.assertEqual(team.get_category_display(), "Kids")
+        self.assertEqual(kids.json()["team"]["categoryLabel"], "Kids")
 
     def test_veteran_category_is_saved_and_shown(self):
         response = self.post_registration(category="veteran", team_name="Veteran FC")
@@ -657,9 +676,13 @@ class AdminTests(TestCase):
         response = self.client.get("/admin/registration/teamregistration/")
 
         self.assertEqual(response.context["summary"]["total"], 2)
+        self.assertEqual(response.context["summary"]["female"], 0)
+        self.assertEqual(response.context["summary"]["kids"], 0)
         self.assertEqual(response.context["summary"]["mens"], 1)
         self.assertEqual(response.context["summary"]["veteran"], 1)
         self.assertContains(response, "Teams registered")
+        self.assertContains(response, "Female teams")
+        self.assertContains(response, "Kids teams")
         self.assertContains(response, "Men's teams")
         self.assertContains(response, "Veteran teams")
 

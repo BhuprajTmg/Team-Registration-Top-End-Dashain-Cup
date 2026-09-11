@@ -21,9 +21,13 @@ class TeamRegistration(models.Model):
         ("16+", "16+ players"),
     ]
 
+    CATEGORY_FEMALE = "female"
+    CATEGORY_KIDS = "kids"
     CATEGORY_MENS = "mens"
     CATEGORY_VETERAN = "veteran"
     CATEGORY_CHOICES = [
+        (CATEGORY_FEMALE, "Female"),
+        (CATEGORY_KIDS, "Kids"),
         (CATEGORY_MENS, "Men's"),
         (CATEGORY_VETERAN, "Veteran"),
     ]
@@ -38,7 +42,7 @@ class TeamRegistration(models.Model):
         choices=CATEGORY_CHOICES,
         default=CATEGORY_MENS,
         db_index=True,
-        help_text="Men's or Veteran — used to group and filter teams.",
+        help_text="Female, Kids, Men's or Veteran — used to group and filter teams.",
     )
 
     team_name = models.CharField(max_length=120)

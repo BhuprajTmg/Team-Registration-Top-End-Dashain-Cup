@@ -213,6 +213,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context["summary"] = {
             "total": queryset.count(),
+            "female": queryset.filter(category=TeamRegistration.CATEGORY_FEMALE).count(),
+            "kids": queryset.filter(category=TeamRegistration.CATEGORY_KIDS).count(),
             "mens": queryset.filter(category=TeamRegistration.CATEGORY_MENS).count(),
             "veteran": queryset.filter(category=TeamRegistration.CATEGORY_VETERAN).count(),
             "today": queryset.filter(created_at__date=today).count(),

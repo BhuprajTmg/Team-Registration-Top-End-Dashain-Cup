@@ -9,7 +9,8 @@
   var MIN_PLAYERS = 8;
   var MAX_PLAYERS = 12;
   var MAX_MPL = 3;
-  var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
+  var DEADLINE = new Date("2026-09-25T23:59:59+09:30").getTime();
+  var VALID_CATEGORIES = ["female", "kids", "mens", "veteran"];
   var allTeams = [];
   var cachedLogoDataUrl = null;
   var cachedReceiptDataUrl = null;
@@ -550,9 +551,9 @@
       setFieldError("field-gmail");
       missing.push("Team Gmail must end with @gmail.com");
     }
-    if (category !== "mens" && category !== "veteran") {
+    if (VALID_CATEGORIES.indexOf(category) === -1) {
       setFieldError("field-category");
-      missing.push("Team category (Men's or Veteran)");
+      missing.push("Team category (Female, Kids, Men's or Veteran)");
     }
 
     var logoInput = document.getElementById("teamLogo");
