@@ -42,6 +42,28 @@
   var yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
+  var copyPayid = document.getElementById("copy-payid");
+  var payidValue = document.getElementById("payid-value");
+  var copyStatus = document.getElementById("copy-status");
+  if (copyPayid && payidValue) {
+    copyPayid.addEventListener("click", function () {
+      var value = payidValue.textContent.trim();
+      function copied() {
+        if (copyStatus) {
+          copyStatus.hidden = false;
+          setTimeout(function () {
+            copyStatus.hidden = true;
+          }, 2000);
+        }
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value).then(copied).catch(copied);
+      } else {
+        copied();
+      }
+    });
+  }
+
   function escapeHtml(str) {
     var d = document.createElement("div");
     d.textContent = str == null ? "" : String(str);
@@ -193,7 +215,13 @@
     closeResultPopup();
   });
   resultOverlay.addEventListener("click", function (e) {
-    if (e.target === resultOverlay) closeResultPopup();
+    if (e.target === resultOverlay) {
+      if (pendingPaymentUrl) {
+        window.location.href = pendingPaymentUrl;
+        return;
+      }
+      closeResultPopup();
+    }
   });
 
   /* ---- Squad table ---- */
@@ -714,10 +742,15 @@
             "Thanks, <strong>" +
               escapeHtml(values.teamName) +
               "</strong>! Your squad is on the list.") +
-            "<br><br>Pay the entry fee by PayID on the next page, then upload your bank screenshot.",
+            "<br><br>Opening the PayID payment page so you can pay and upload your bank screenshot.",
           result.paymentUrl || null
         );
         window.scrollTo({ top: 0, behavior: "smooth" });
+        if (result.paymentUrl) {
+          window.setTimeout(function () {
+            window.location.href = result.paymentUrl;
+          }, 900);
+        }
       } else {
         showResultPopup(
           "error",

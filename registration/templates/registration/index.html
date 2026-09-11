@@ -41,6 +41,7 @@
 
     <div class="hero-cta">
       <a href="#register" class="btn btn-register">Register your team</a>
+      <a href="#pay" class="btn btn-payid">View PayID</a>
     </div>
 
     <div class="hero-stats" aria-label="Registration snapshot">
@@ -116,6 +117,27 @@
         <div class="step-num">3</div>
         <h4>Get your fixtures</h4>
         <p>Match schedules and ground rules go out to team contacts in the week before the Cup.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="form-section" id="pay">
+  <div class="wrap">
+    <h2 class="section-title">PayID payment</h2>
+    <p class="section-intro">
+      Pay <strong>${{ entry_fee }}</strong> to the club PayID below. After you submit the squad form
+      you are taken to the payment page to upload a screenshot of your bank transfer.
+    </p>
+    <div class="payid-card">
+      <h3>PayID details</h3>
+      <div class="payid-value" id="payid-value">{{ payid_value }}</div>
+      <p class="payid-meta">
+        Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
+      </p>
+      <div class="payid-actions">
+        <button type="button" class="btn" id="copy-payid">Copy PayID</button>
+        <span class="form-status" id="copy-status" hidden>Copied.</span>
       </div>
     </div>
   </div>
@@ -224,8 +246,6 @@
       <div class="form-msg" id="form-msg"></div>
     </form>
   </div>
-</section>
-
 </section>
 
 <footer>
@@ -466,6 +486,6 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}"></script>
+<script src="{% static 'registration/js/script.js' %}?v=payid2"></script>
 </body>
 </html>

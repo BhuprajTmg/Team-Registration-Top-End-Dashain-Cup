@@ -159,6 +159,18 @@ img { max-width: 100%; display: block; }
   margin-top: 26px;
   display: flex;
   justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.btn-payid {
+  min-width: 180px;
+  background: transparent;
+  color: var(--gold);
+  border: 2px solid var(--gold);
+  box-shadow: none;
+}
+.btn-payid:hover {
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
 }
 .btn-register {
   min-width: 220px;
