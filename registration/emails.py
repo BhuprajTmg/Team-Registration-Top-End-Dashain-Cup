@@ -61,6 +61,7 @@ def _display_context(registration):
         "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 370),
         "payid_value": getattr(settings, "PAYID_VALUE", "0000000000"),
         "payid_name": getattr(settings, "PAYID_NAME", "Gurkhali FC"),
+        "has_payment_receipt": bool(getattr(registration, "has_payment_receipt", False)),
     }
 
 

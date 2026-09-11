@@ -159,12 +159,29 @@ class RegisterView(View):
                 {"status": "error", "ok": False, "message": message}, status=400
             )
 
+        try:
+            receipt_bytes, receipt_type, receipt_name = parse_receipt_payload(
+                payload.get("receipt")
+                or payload.get("screenshot")
+                or payload.get("paymentReceipt"),
+                required=True,
+            )
+        except forms.ValidationError as exc:
+            message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
+            return JsonResponse(
+                {"status": "error", "ok": False, "message": message}, status=400
+            )
+
         registration = form.save(commit=False)
         registration.tournament = payload.get("tournament") or TOURNAMENT_NAME
         registration.division = payload.get("division") or DIVISION_NAME
         registration.logo = logo_bytes
         registration.logo_content_type = logo_type
         registration.logo_filename = logo_name
+        registration.payment_receipt = receipt_bytes
+        registration.payment_receipt_content_type = receipt_type
+        registration.payment_receipt_filename = receipt_name
+        registration.mark_payment_received()
         registration.save()
 
         email_queued = False
@@ -174,7 +191,7 @@ class RegisterView(View):
             message = (
                 f"Thanks, {registration.team_name}! Your registration is in. "
                 f"A confirmation email is being sent to {registration.gmail}. "
-                f"Pay the ${settings.ENTRY_FEE_AUD} entry fee via PayID and upload your receipt."
+                f"Your ${settings.ENTRY_FEE_AUD} PayID screenshot has been saved."
             )
         else:
             registration.confirmation_email_sent = send_confirmation_email(registration)
@@ -186,8 +203,8 @@ class RegisterView(View):
             if registration.confirmation_email_sent:
                 message = (
                     f"Thanks, {registration.team_name}! Your registration is in. A confirmation "
-                    f"has been sent to {registration.gmail}. Pay the ${settings.ENTRY_FEE_AUD} "
-                    "entry fee via PayID and upload your receipt."
+                    f"has been sent to {registration.gmail}. Your ${settings.ENTRY_FEE_AUD} "
+                    "PayID screenshot has been saved."
                 )
             elif not email_is_configured():
                 message = (

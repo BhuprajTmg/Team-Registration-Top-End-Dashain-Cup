@@ -111,33 +111,12 @@
       <div class="step">
         <div class="step-num">2</div>
         <h4>Pay the entry fee</h4>
-        <p>Pay <strong>${{ entry_fee }}</strong> to PayID <strong>{{ payid_value }}</strong>, then upload your bank screenshot on the payment page.</p>
+        <p>Pay <strong>${{ entry_fee }}</strong> to PayID <strong>{{ payid_value }}</strong> and upload your bank screenshot on this same form, then submit.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <h4>Get your fixtures</h4>
         <p>Match schedules and ground rules go out to team contacts in the week before the Cup.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="form-section" id="pay">
-  <div class="wrap">
-    <h2 class="section-title">PayID payment</h2>
-    <p class="section-intro">
-      Pay <strong>${{ entry_fee }}</strong> to the club PayID below. After you submit the squad form
-      you are taken to the payment page to upload a screenshot of your bank transfer.
-    </p>
-    <div class="payid-card">
-      <h3>PayID details</h3>
-      <div class="payid-value" id="payid-value">{{ payid_value }}</div>
-      <p class="payid-meta">
-        Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
-      </p>
-      <div class="payid-actions">
-        <button type="button" class="btn" id="copy-payid">Copy PayID</button>
-        <span class="form-status" id="copy-status" hidden>Copied.</span>
       </div>
     </div>
   </div>
@@ -186,10 +165,10 @@
           <div id="field-contact">
             <label for="contactPhone">Phone number <span class="req">*</span></label>
             <input type="tel" id="contactPhone" name="phone" autocomplete="tel"
-              inputmode="numeric" maxlength="16" placeholder="0400 123 456"
+              inputmode="numeric" maxlength="13" placeholder="0447 123 456" value="0447"
               pattern="(?:0[23478]|\+61[23478])(?:[ ()-]*[0-9]){8}" required />
-            <span class="hint">Numbers only. Use an Australian mobile or landline, for example 0400 123 456.</span>
-            <span class="error-text" id="phone-error">Enter a valid Australian phone number.</span>
+            <span class="hint">Starts with 0447. Add the rest of the number — digits only.</span>
+            <span class="error-text" id="phone-error">Enter the rest of the 0447 phone number.</span>
           </div>
         </div>
         <div class="field-row single" id="field-gmail">
@@ -239,9 +218,32 @@
         <span class="error-text">Tick the box to confirm you agree to the tournament rules.</span>
       </fieldset>
 
+      <fieldset id="pay">
+        <legend>PayID payment <span class="req">*</span></legend>
+        <p class="form-note">Pay <strong>${{ entry_fee }}</strong> to the club PayID, then upload a screenshot of the transfer on this form before you submit.</p>
+        <div class="payid-card">
+          <h3>PayID details</h3>
+          <div class="payid-value" id="payid-value">{{ payid_value }}</div>
+          <p class="payid-meta">
+            Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
+          </p>
+          <div class="payid-actions">
+            <button type="button" class="btn" id="copy-payid">Copy PayID</button>
+            <span class="form-status" id="copy-status" hidden>Copied.</span>
+          </div>
+        </div>
+        <div id="field-receipt">
+          <label for="receiptFile">Bank statement screenshot <span class="req">*</span></label>
+          <input type="file" id="receiptFile" accept="image/png,image/jpeg,image/webp,image/gif" required />
+          <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the PayID transfer.</span>
+          <span class="error-text" id="receipt-error">Upload a screenshot of your bank payment.</span>
+          <img id="receipt-preview" class="receipt-preview" alt="Receipt preview" />
+        </div>
+      </fieldset>
+
       <div class="submit-row">
         <button type="submit" class="btn" id="submit-btn">Submit registration</button>
-        <span class="form-status">After submit you will pay ${{ entry_fee }} via PayID and upload a screenshot.</span>
+        <span class="form-status">PayID, screenshot and squad details are submitted together.</span>
       </div>
       <div class="form-msg" id="form-msg"></div>
     </form>
@@ -486,6 +488,6 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=payid2"></script>
+<script src="{% static 'registration/js/script.js' %}?v=payid3"></script>
 </body>
 </html>

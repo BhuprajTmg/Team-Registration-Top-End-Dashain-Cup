@@ -34,7 +34,7 @@ VALID_PAYLOAD = {
     "team_name": "Test Tigers",
     "manager_name": "Sita Gurung",
     "home_city": "Darwin",
-    "phone": "0400 000 000",
+    "phone": "0447 123 456",
     "gmail": "testtigers@gmail.com",
     "squad_size": "10-12",
     "experience": "N/A",
@@ -43,6 +43,7 @@ VALID_PAYLOAD = {
     "pin": "4821",
     "players": SAMPLE_PLAYERS,
     "teamLogo": SAMPLE_LOGO,
+    "receipt": SAMPLE_LOGO,
 }
 
 
@@ -71,6 +72,9 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "PayID")
         self.assertContains(response, "0000000000")
         self.assertContains(response, 'id="pay"')
+        self.assertContains(response, 'id="receiptFile"')
+        self.assertContains(response, 'value="0447"')
+        self.assertContains(response, "Bank statement screenshot")
 
     def test_logo_upload_is_saved_and_served(self):
         response = self.post_registration()
@@ -115,11 +119,19 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(team.squad_size, "7-9")
         self.assertTrue(team.payment_token)
         self.assertIn("paymentUrl", response.json())
-        self.assertFalse(team.has_payment_receipt)
+        self.assertTrue(team.has_payment_receipt)
+        self.assertIsNotNone(team.payment_received_at)
+
+    def test_missing_payment_screenshot_is_rejected(self):
+        response = self.post_registration(receipt="")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("screenshot", response.json()["message"].lower())
+        self.assertEqual(TeamRegistration.objects.count(), 0)
 
     def test_payment_page_and_receipt_upload(self):
         created = self.post_registration()
         team = TeamRegistration.objects.get()
+        self.assertTrue(team.has_payment_receipt)
         pay_url = created.json()["paymentUrl"]
         page = self.client.get(pay_url)
         self.assertEqual(page.status_code, 200)
