@@ -88,6 +88,12 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "Select Men's or Veteran")
         self.assertContains(response, 'value="veteran"')
         self.assertContains(response, 'value="mens"')
+        html = response.content.decode()
+        self.assertLess(
+            html.find('id="field-category"'),
+            html.find('id="field-squad"'),
+            "Team category should appear above the squad list.",
+        )
 
     def test_logo_upload_is_saved_and_served(self):
         response = self.post_registration()
