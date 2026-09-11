@@ -39,7 +39,7 @@ class TeamRegistration(models.Model):
     )
     notes = models.TextField(blank=True, default="")
 
-    # Squad roster: [{"name", "jersey", "gmail", "mpl"}, ...]
+    # Squad roster: [{"name", "phone", "gmail", "mpl"}, ...]
     players = models.JSONField(default=list, blank=True)
     # Hashed 4-digit PIN used to edit / withdraw the registration publicly.
     pin_hash = models.CharField(max_length=128, blank=True, default="")

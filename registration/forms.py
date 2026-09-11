@@ -9,7 +9,6 @@ MAX_PLAYERS = 12
 MIN_NON_PREMIER = 8
 MAX_PREMIER = 3
 GMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", re.IGNORECASE)
-JERSEY_RE = re.compile(r"^(?:[1-9]|[1-9][0-9])$")
 
 
 def normalize_australian_phone(raw_phone):
@@ -36,31 +35,33 @@ def normalize_players(raw_players):
 
     players = []
     mpl_count = 0
-    jerseys = []
+    phones = []
     gmails = []
     for item in raw_players:
         if not isinstance(item, dict):
             continue
         name = str(item.get("name") or "").strip()
-        jersey_raw = item.get("jersey")
-        jersey = str(jersey_raw).strip() if jersey_raw not in (None, "") else ""
+        phone_raw = item.get("phone") or item.get("jersey")
+        phone = str(phone_raw).strip() if phone_raw not in (None, "") else ""
         gmail = str(item.get("gmail") or "").strip().lower()
         mpl = bool(item.get("mpl"))
-        if not name and not jersey and not gmail:
+        if not name and not phone and not gmail:
             continue
         if not name:
             raise forms.ValidationError("Every player needs a full name.")
-        if not JERSEY_RE.fullmatch(jersey):
+        try:
+            phone = normalize_australian_phone(phone)
+        except forms.ValidationError:
             raise forms.ValidationError(
-                "Every player needs a shirt number from 1 to 99."
+                "Every player needs a valid Australian phone number, numbers only."
             )
         if not GMAIL_RE.fullmatch(gmail):
             raise forms.ValidationError(
                 "Every player needs a Gmail address ending in @gmail.com."
             )
-        if jersey in jerseys:
+        if phone in phones:
             raise forms.ValidationError(
-                f"Shirt number {jersey} is used more than once."
+                "Each player needs their own phone number."
             )
         if gmail in gmails:
             raise forms.ValidationError(
@@ -68,9 +69,9 @@ def normalize_players(raw_players):
             )
         if mpl:
             mpl_count += 1
-        jerseys.append(jersey)
+        phones.append(phone)
         gmails.append(gmail)
-        players.append({"name": name, "jersey": jersey, "gmail": gmail, "mpl": mpl})
+        players.append({"name": name, "phone": phone, "gmail": gmail, "mpl": mpl})
 
     if len(players) < MIN_PLAYERS:
         raise forms.ValidationError(

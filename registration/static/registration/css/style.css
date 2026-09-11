@@ -499,15 +499,15 @@ input.is-invalid {
   overflow-x: auto;
 }
 .squad-table input[type="text"],
-.squad-table input[type="email"] {
+.squad-table input[type="email"],
+.squad-table input[type="tel"] {
   padding: 10px 12px;
   font-size: 0.95rem;
 }
-.jersey-cell input {
-  width: 4.6rem;
-  text-align: center;
+.player-phone-cell input {
+  min-width: 8.5rem;
 }
-.col-jersey { width: 72px; text-align: center; }
+.col-player-phone { width: 150px; }
 .mpl-cell { text-align: center; }
 .mpl-cell input {
   width: 18px;

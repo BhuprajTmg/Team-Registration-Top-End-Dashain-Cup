@@ -17,7 +17,7 @@ from .models import TeamRegistration
 SAMPLE_PLAYERS = [
     {
         "name": f"Player {i}",
-        "jersey": str(i),
+        "phone": f"04000000{i:02d}",
         "gmail": f"player{i}@gmail.com",
     }
     for i in range(1, 9)
@@ -65,7 +65,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "Premier Players")
         self.assertContains(response, "8 to 12")
         self.assertContains(response, "Player Gmail")
-        self.assertContains(response, "Shirt no.")
+        self.assertContains(response, "Player phone")
         self.assertContains(response, "PayID")
 
     def test_logo_upload_is_saved_and_served(self):
@@ -119,7 +119,7 @@ class RegistrationEndpointTests(TestCase):
         pay_url = created.json()["paymentUrl"]
         page = self.client.get(pay_url)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "Gurkhalifc@gmail.com")
+        self.assertContains(page, "0000000000")
         self.assertContains(page, "$370")
 
         upload = self.client.post(
@@ -177,7 +177,7 @@ class RegistrationEndpointTests(TestCase):
         new_players = [
             {
                 "name": f"Updated {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"updated{i}@gmail.com",
             }
             for i in range(1, 9)
@@ -220,7 +220,7 @@ class RegistrationEndpointTests(TestCase):
         players = [
             {
                 "name": f"Player {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"player{i}@gmail.com",
                 "mpl": i <= 4,
             }
@@ -235,7 +235,7 @@ class RegistrationEndpointTests(TestCase):
         players = [
             {
                 "name": f"Player {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"player{i}@gmail.com",
                 "mpl": i <= 3,
             }
@@ -250,7 +250,7 @@ class RegistrationEndpointTests(TestCase):
         players = [
             {
                 "name": f"Player {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"player{i}@gmail.com",
                 "mpl": i <= 2,
             }
@@ -265,7 +265,7 @@ class RegistrationEndpointTests(TestCase):
         players = [
             {
                 "name": f"Player {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"player{i}@gmail.com",
             }
             for i in range(1, 14)
@@ -275,20 +275,34 @@ class RegistrationEndpointTests(TestCase):
         self.assertIn("12", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
-    def test_player_gmail_and_number_are_required(self):
+    def test_player_gmail_is_required(self):
         players = [
-            {"name": f"Player {i}", "jersey": str(i)} for i in range(1, 9)
+            {"name": f"Player {i}", "phone": f"04000000{i:02d}"} for i in range(1, 9)
         ]
         response = self.post_registration(players=players)
         self.assertEqual(response.status_code, 400)
         self.assertIn("Gmail", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
+    def test_player_phone_rejects_text(self):
+        players = [
+            {
+                "name": f"Player {i}",
+                "phone": "not a number" if i == 1 else f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+            }
+            for i in range(1, 9)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("phone", response.json()["message"].lower())
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
     def test_twelve_players_are_accepted(self):
         players = [
             {
                 "name": f"Player {i}",
-                "jersey": str(i),
+                "phone": f"04000000{i:02d}",
                 "gmail": f"player{i}@gmail.com",
             }
             for i in range(1, 13)

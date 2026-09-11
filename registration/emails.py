@@ -36,7 +36,9 @@ def _display_context(registration):
         name = p.get("name")
         if not name:
             continue
-        label = f"{name} (#{p.get('jersey')})" if p.get("jersey") else name
+        label = name
+        if p.get("phone"):
+            label = f"{label} ({p.get('phone')})"
         if p.get("gmail"):
             label = f"{label} <{p.get('gmail')}>"
         if p.get("mpl"):
@@ -57,7 +59,7 @@ def _display_context(registration):
             else registration.payment_path()
         ),
         "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 370),
-        "payid_value": getattr(settings, "PAYID_VALUE", "Gurkhalifc@gmail.com"),
+        "payid_value": getattr(settings, "PAYID_VALUE", "0000000000"),
         "payid_name": getattr(settings, "PAYID_NAME", "Gurkhali FC"),
     }
 

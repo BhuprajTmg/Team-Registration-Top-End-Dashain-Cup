@@ -249,8 +249,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
             players_text = "; ".join(
                 (
                     (
-                        f"{p.get('name')} (#{p.get('jersey')})"
-                        if p.get("jersey")
+                        f"{p.get('name')} ({p.get('phone')})"
+                        if p.get("phone")
                         else p.get("name", "")
                     )
                     + (f" <{p.get('gmail')}>" if p.get("gmail") else "")

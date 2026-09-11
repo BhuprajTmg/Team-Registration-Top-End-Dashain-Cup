@@ -237,10 +237,10 @@
       var nameInput = tr.querySelector(".name-input");
       var mplInput = tr.querySelector(".mpl-input");
       nameInput.name = "player_" + (i + 1);
-      var jerseyInput = tr.querySelector(".jersey-input");
+      var phoneInput = tr.querySelector(".player-phone-input");
       var gmailInput = tr.querySelector(".player-gmail-input");
       mplInput.name = "player_" + (i + 1) + "_mpl";
-      if (jerseyInput) jerseyInput.name = "player_" + (i + 1) + "_number";
+      if (phoneInput) phoneInput.name = "player_" + (i + 1) + "_phone";
       if (gmailInput) gmailInput.name = "player_" + (i + 1) + "_gmail";
     });
   }
@@ -266,8 +266,8 @@
       '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefill.name ? escapeHtml(prefill.name) : "") +
       '"></td>' +
-      '<td class="jersey-cell"><input type="text" class="jersey-input" inputmode="numeric" maxlength="2" placeholder="1–99" autocomplete="off" required value="' +
-      (prefill.jersey ? escapeHtml(prefill.jersey) : "") +
+      '<td class="player-phone-cell"><input type="tel" class="player-phone-input" inputmode="numeric" maxlength="16" placeholder="0400 123 456" autocomplete="off" required value="' +
+      (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
       '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
@@ -278,8 +278,23 @@
       '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove player">&times;</button></td>';
     squadBody.appendChild(tr);
     wireMplCheckbox(tr.querySelector(".mpl-input"));
-    tr.querySelector(".jersey-input").addEventListener("input", function () {
-      this.value = this.value.replace(/\D/g, "").slice(0, 2);
+    var phoneInput = tr.querySelector(".player-phone-input");
+    phoneInput.addEventListener("keydown", function (event) {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+        return;
+      }
+      if (!/[0-9+() \-]/.test(event.key)) {
+        event.preventDefault();
+      }
+    });
+    phoneInput.addEventListener("input", function () {
+      var cleaned = sanitizePhoneInput(this.value);
+      if (cleaned !== this.value) this.value = cleaned;
+    });
+    phoneInput.addEventListener("paste", function (event) {
+      event.preventDefault();
+      var pasted = event.clipboardData ? event.clipboardData.getData("text") || "" : "";
+      this.value = sanitizePhoneInput(pasted);
     });
     tr.querySelector(".remove-player").addEventListener("click", function () {
       if (rowCount() <= MIN_PLAYERS) {
@@ -307,12 +322,12 @@
     var players = [];
     Array.prototype.slice.call(tbody.querySelectorAll("tr")).forEach(function (tr) {
       var name = tr.querySelector(".name-input").value.trim();
-      var jerseyEl = tr.querySelector(".jersey-input");
+      var phoneEl = tr.querySelector(".player-phone-input");
       var gmailEl = tr.querySelector(".player-gmail-input");
-      var jersey = jerseyEl ? jerseyEl.value.trim() : "";
+      var phone = phoneEl ? phoneEl.value.trim() : "";
       var gmail = gmailEl ? gmailEl.value.trim() : "";
       var mpl = tr.querySelector(".mpl-input").checked;
-      players.push({ name: name, jersey: jersey, gmail: gmail, mpl: mpl });
+      players.push({ name: name, phone: phone, gmail: gmail, mpl: mpl });
     });
     return players;
   }
@@ -362,7 +377,7 @@
       var el = document.getElementById(id);
       if (el) el.classList.remove("err");
     });
-    squadBody.querySelectorAll(".name-input, .jersey-input, .player-gmail-input").forEach(function (input) {
+    squadBody.querySelectorAll(".name-input, .player-phone-input, .player-gmail-input").forEach(function (input) {
       input.classList.remove("is-invalid");
     });
     if (playersError) {
@@ -382,7 +397,7 @@
   }
 
   function scrollToFirstError() {
-    var first = form.querySelector(".err, .name-input.is-invalid");
+    var first = form.querySelector(".err, .is-invalid");
     if (!first) return;
     var target = first.classList.contains("is-invalid")
       ? first
@@ -480,34 +495,34 @@
       missing.push("Confirmation / rules agreement");
     }
 
-    squadBody.querySelectorAll(".name-input, .jersey-input, .player-gmail-input").forEach(function (input) {
+    squadBody.querySelectorAll(".name-input, .player-phone-input, .player-gmail-input").forEach(function (input) {
       input.classList.remove("is-invalid");
     });
 
     var filledPlayers = [];
-    var jerseySeen = {};
+    var phoneSeen = {};
     var gmailSeen = {};
     var squadIssues = [];
     squadBody.querySelectorAll("tr").forEach(function (tr) {
       var nameInput = tr.querySelector(".name-input");
-      var jerseyInput = tr.querySelector(".jersey-input");
+      var phoneInput = tr.querySelector(".player-phone-input");
       var gmailInput = tr.querySelector(".player-gmail-input");
       var name = nameInput.value.trim();
-      var jersey = jerseyInput.value.trim();
+      var normalizedPhone = normalizeAustralianPhone(phoneInput.value);
       var playerGmail = gmailInput.value.trim().toLowerCase();
       var mpl = tr.querySelector(".mpl-input").checked;
       if (!name) {
         nameInput.classList.add("is-invalid");
         squadIssues.push("name");
       }
-      if (!/^(?:[1-9]|[1-9][0-9])$/.test(jersey)) {
-        jerseyInput.classList.add("is-invalid");
-        squadIssues.push("number");
-      } else if (jerseySeen[jersey]) {
-        jerseyInput.classList.add("is-invalid");
-        squadIssues.push("duplicate-number");
+      if (!normalizedPhone) {
+        phoneInput.classList.add("is-invalid");
+        squadIssues.push("phone");
+      } else if (phoneSeen[normalizedPhone]) {
+        phoneInput.classList.add("is-invalid");
+        squadIssues.push("duplicate-phone");
       } else {
-        jerseySeen[jersey] = true;
+        phoneSeen[normalizedPhone] = true;
       }
       if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
         gmailInput.classList.add("is-invalid");
@@ -518,8 +533,13 @@
       } else {
         gmailSeen[playerGmail] = true;
       }
-      if (name && /^(?:[1-9]|[1-9][0-9])$/.test(jersey) && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
-        filledPlayers.push({ name: name, jersey: jersey, gmail: playerGmail, mpl: mpl });
+      if (name && normalizedPhone && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
+        filledPlayers.push({
+          name: name,
+          phone: normalizedPhone,
+          gmail: playerGmail,
+          mpl: mpl,
+        });
       }
     });
 
@@ -527,10 +547,10 @@
       setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
-          "Every player needs a name, shirt number (1–99), and Gmail. Numbers and Gmails cannot be repeated.";
+          "Every player needs a name, Australian phone number (numbers only), and Gmail. Phone numbers and Gmails cannot be repeated.";
         playersError.style.display = "block";
       }
-      missing.push("Player name, number and Gmail for every row");
+      missing.push("Player name, phone number and Gmail for every row");
     } else if (filledPlayers.length < MIN_PLAYERS) {
       setFieldError("field-squad");
       if (playersError) {

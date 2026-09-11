@@ -234,8 +234,8 @@ CLUB_NAME = env_str("CLUB_NAME", "Gurkhali FC")
 # teams transfer the fee and upload a bank-statement screenshot.
 ENTRY_FEE_AUD = env_int("ENTRY_FEE_AUD", 370)
 PAYID_NAME = env_str("PAYID_NAME", "Gurkhali FC")
-PAYID_VALUE = env_str("PAYID_VALUE", "Gurkhalifc@gmail.com")
-PAYID_TYPE = env_str("PAYID_TYPE", "Email")
+PAYID_VALUE = env_str("PAYID_VALUE", "0000000000")
+PAYID_TYPE = env_str("PAYID_TYPE", "Phone")
 PUBLIC_SITE_URL = env_str(
     "PUBLIC_SITE_URL",
     "https://gurkhalifc-dashain-cup.fly.dev",
