@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from smtplib import SMTPAuthenticationError
 from unittest import mock
 
@@ -98,6 +99,18 @@ class RegistrationEndpointTests(TestCase):
             html.find('id="field-squad"'),
             "Team category should appear above the squad list.",
         )
+        self.assertContains(response, 'name="viewport"')
+        self.assertContains(response, "width=device-width")
+        self.assertContains(response, "style.css")
+
+    def test_stylesheet_includes_phone_layout_rules(self):
+        css = Path(settings.BASE_DIR, "registration/static/registration/css/style.css").read_text()
+        self.assertIn("overflow-x: hidden", css)
+        self.assertIn("safe-area-inset", css)
+        self.assertIn("@media (max-width: 720px)", css)
+        self.assertIn("@media (max-width: 360px)", css)
+        self.assertIn(".checkbox-row {", css)
+        self.assertIn("content: attr(data-label)", css)
 
     def test_logo_upload_is_saved_and_served(self):
         response = self.post_registration()
