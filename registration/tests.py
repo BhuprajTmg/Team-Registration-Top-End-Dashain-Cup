@@ -247,7 +247,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertIn("Premier", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
-    def test_too_few_non_premier_players_is_rejected(self):
+    def test_eight_players_with_premier_or_none_is_accepted(self):
         players = [
             {
                 "name": f"Player {i}",
@@ -258,9 +258,23 @@ class RegistrationEndpointTests(TestCase):
             for i in range(1, 9)
         ]
         response = self.post_registration(players=players)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("non-Premier", response.json()["message"])
-        self.assertEqual(TeamRegistration.objects.count(), 0)
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(len(team.players), 8)
+        self.assertEqual(sum(1 for p in team.players if p.get("mpl")), 3)
+
+        TeamRegistration.objects.all().delete()
+        no_premier = [
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+            }
+            for i in range(1, 9)
+        ]
+        response = self.post_registration(players=no_premier)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(sum(1 for p in TeamRegistration.objects.get().players if p.get("mpl")), 0)
 
     def test_mpl_flag_is_saved(self):
         players = [
@@ -393,6 +407,40 @@ class RegistrationEndpointTests(TestCase):
         body = response.json()
         self.assertTrue(body["confirmation_email_sent"])
         self.assertIn("confirmation has been sent", body["message"])
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        EMAIL_HOST_USER="organiser@gmail.com",
+        EMAIL_HOST_PASSWORD="app-password",
+        ORGANISER_EMAIL="organiser@gmail.com",
+    )
+    def test_organiser_email_has_player_table_and_payment_attachment(self):
+        self.post_registration()
+
+        team_mail = next(message for message in mail.outbox if "testtigers@gmail.com" in message.to)
+        org_mail = next(message for message in mail.outbox if "organiser@gmail.com" in message.to)
+
+        self.assertEqual(team_mail.attachments, [])
+        self.assertEqual(len(org_mail.attachments), 1)
+        filename, content, mimetype = org_mail.attachments[0]
+        self.assertIn("payment-receipt", filename)
+        self.assertGreater(len(content), 10)
+        self.assertTrue(mimetype.startswith("image/"))
+
+        team_html = dict(
+            (content_type, body) for body, content_type in team_mail.alternatives
+        )["text/html"]
+        org_html = dict(
+            (content_type, body) for body, content_type in org_mail.alternatives
+        )["text/html"]
+        for html in (team_html, org_html):
+            self.assertIn(">Name<", html)
+            self.assertIn(">Phone<", html)
+            self.assertIn(">Gmail<", html)
+            self.assertIn("Player 1", html)
+            self.assertNotIn("Player 1 (0400000001) <player1@gmail.com>", html)
+        self.assertIn("screenshot is attached", org_html)
+        self.assertNotIn("screenshot is attached", team_html)
 
     @override_settings(
         REGISTRATION_EMAIL_ASYNC=True,

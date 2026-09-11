@@ -6,6 +6,10 @@ A new team just registered for {{ registration.tournament }}.
   Phone: {{ registration.phone }}
   Gmail: {{ registration.gmail }}
   Squad Size: {{ squad_size_display }}
-  Players: {{ players_display_text }}
   Notes: {{ notes_display }}
   Submitted At: {{ registration.created_at }}
+
+{% include "registration/emails/_players_table.txt" %}
+{% if has_payment_receipt %}
+The PayID bank screenshot is attached to this email.
+{% endif %}

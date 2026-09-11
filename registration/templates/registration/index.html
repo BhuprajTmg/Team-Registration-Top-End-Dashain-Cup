@@ -127,8 +127,9 @@
     <h2 class="section-title">Team registration form</h2>
     <p class="section-intro">
       Squads may include a maximum of <strong>12 players</strong> for a matchday list.
-      Each squad must include at least <strong>8 non-Premier players</strong>, and no more than
-      <strong>3 Premier Players</strong> (Darwin Men’s Premier League 2026 / Australia Cup).
+      You need at least <strong>8 players</strong>. Premier Players are optional, and a squad
+      may include no more than <strong>3 Premier Players</strong>
+      (Darwin Men’s Premier League 2026 / Australia Cup).
       A confirmation email is sent to your team Gmail.
     </p>
 
@@ -203,7 +204,7 @@
           <span class="count"><b id="player-count-label">0</b> of 12 players</span>
         </div>
         <p class="form-note" id="mplNote">0 of 3 Premier Players selected</p>
-        <div class="players-error" id="players-error">You need at least 8 players, including at least 8 non-Premier players.</div>
+        <div class="players-error" id="players-error">You need at least 8 players. Premier Players are optional (maximum 3).</div>
       </fieldset>
 
       <fieldset id="field-agree">
@@ -376,7 +377,7 @@
 
   <section id="r-eligibility">
     <h4>5. Player eligibility &amp; Premier Player classification</h4>
-    <p><strong>Core rule:</strong> each squad must contain at least 8 non-Premier players and may contain no more than 3 Premier Players.</p>
+    <p><strong>Core rule:</strong> a squad must have at least 8 players and may contain no more than 3 Premier Players. Premier Players are optional — a team may register with none.</p>
     <ul>
       <li>Only properly registered players may participate.</li>
       <li>A <strong>Premier Player</strong> is any player who has featured in 5 or more official Darwin Men’s Premier League 2026 matches, including Australia Cup matches.</li>
@@ -488,6 +489,6 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=payid3"></script>
+<script src="{% static 'registration/js/script.js' %}?v=squad2"></script>
 </body>
 </html>

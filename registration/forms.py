@@ -6,7 +6,6 @@ from .models import TeamRegistration
 
 MIN_PLAYERS = 8
 MAX_PLAYERS = 12
-MIN_NON_PREMIER = 8
 MAX_PREMIER = 3
 GMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", re.IGNORECASE)
 
@@ -84,11 +83,6 @@ def normalize_players(raw_players):
     if mpl_count > MAX_PREMIER:
         raise forms.ValidationError(
             "A squad may include at most 3 Premier Players."
-        )
-    non_premier = len(players) - mpl_count
-    if non_premier < MIN_NON_PREMIER:
-        raise forms.ValidationError(
-            "Each squad must include at least 8 non-Premier players."
         )
     return players
 

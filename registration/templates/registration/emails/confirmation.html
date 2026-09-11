@@ -21,12 +21,13 @@
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse;">
                 <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Team Name</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;font-weight:700;">{{ registration.team_name }}</td></tr>
-                        <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Captain</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.manager_name }}</td></tr>
-                        <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Home City / Suburb</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.home_city|default:"—" }}</td></tr>
-                        <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.phone }}</td></tr>
-                        <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Squad Size</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ squad_size_display }}</td></tr>
-                        <tr><td style="padding:8px 0;color:#6b6250;font-size:12px;text-transform:uppercase;vertical-align:top;">Players</td><td style="padding:8px 0;text-align:right;">{{ players_display_text }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Captain</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.manager_name }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Home City / Suburb</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.home_city|default:"—" }}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #ece3cf;color:#6b6250;font-size:12px;text-transform:uppercase;">Phone</td><td style="padding:8px 0;border-bottom:1px solid #ece3cf;text-align:right;">{{ registration.phone }}</td></tr>
+                <tr><td style="padding:8px 0;color:#6b6250;font-size:12px;text-transform:uppercase;">Squad Size</td><td style="padding:8px 0;text-align:right;">{{ squad_size_display }}</td></tr>
               </table>
+
+              {% include "registration/emails/_players_table.html" %}
 
               <p style="font-size:15px;line-height:1.6;">
                 {% if has_payment_receipt %}
