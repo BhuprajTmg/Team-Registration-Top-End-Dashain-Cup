@@ -1,0 +1,107 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Pay entry fee — {{ team.team_name }} | Gurkhali FC</title>
+<link rel="icon" type="image/webp" href="{% static 'registration/img/logo.webp' %}" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="{% static 'registration/css/style.css' %}" />
+</head>
+<body>
+<a class="skip" href="#pay">Skip to payment</a>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-brand">
+      <picture>
+        <source srcset="{% static 'registration/img/logo.webp' %}" type="image/webp" />
+        <img class="hero-crest" src="{% static 'registration/img/logo.png' %}" alt="Gurkhali FC" width="52" height="52" />
+      </picture>
+      <div class="hero-brand-copy">
+        <p class="hero-presents"><span class="dot" aria-hidden="true"></span> Gurkhali FC presents</p>
+        <p class="hero-tagline">Entry fee payment</p>
+      </div>
+    </div>
+    <h1 class="hero-title">PayID <span>payment</span></h1>
+    <p class="hero-sub">Pay ${{ entry_fee }} for <strong>{{ team.team_name }}</strong>, then upload a screenshot of your bank statement.</p>
+  </div>
+  <div class="hero-bars" aria-hidden="true"></div>
+</header>
+
+<section class="form-section" id="pay">
+  <div class="wrap">
+    <h2 class="section-title">{{ team.team_name }}</h2>
+    <p class="section-intro">There is no card checkout. Transfer the fee to the club PayID, then upload the screenshot so organisers can match your payment.</p>
+
+    <div class="payid-card">
+      <h3>PayID details</h3>
+      <div class="payid-value" id="payid-value">{{ payid_value }}</div>
+      <p class="payid-meta">
+        Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
+      </p>
+      <div class="payid-actions">
+        <button type="button" class="btn" id="copy-payid">Copy PayID</button>
+        <span class="form-status" id="copy-status" hidden>Copied.</span>
+      </div>
+    </div>
+
+    {% if team.has_payment_receipt %}
+    <p class="form-note">A payment screenshot is already on file for this team. You can replace it below if needed.</p>
+    {% endif %}
+
+    <form id="payment-form" novalidate
+      data-pay-url="{% url 'registration:pay_submit' team.payment_token %}">
+      {% csrf_token %}
+      <fieldset id="field-receipt">
+        <legend>Bank statement screenshot <span class="req">*</span></legend>
+        <label for="receiptFile">Upload screenshot</label>
+        <input type="file" id="receiptFile" accept="image/png,image/jpeg,image/webp,image/gif" required />
+        <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the PayID transfer.</span>
+        <span class="error-text" id="receipt-error">Upload a screenshot of your bank payment.</span>
+        <img id="receipt-preview" class="receipt-preview" alt="Receipt preview" />
+      </fieldset>
+      <div class="submit-row">
+        <button type="submit" class="btn" id="pay-submit-btn">Submit payment screenshot</button>
+        <a class="link-btn" href="{% url 'registration:index' %}">Back to registration</a>
+      </div>
+      <div class="form-msg" id="pay-msg"></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Gurkhali FC. All rights reserved.</span>
+      <span>{{ tournament }} — PayID entry fee.</span>
+    </div>
+  </div>
+</footer>
+
+<div class="result-overlay" id="resultOverlay" aria-hidden="true">
+  <div class="result-card" id="resultCard" role="alertdialog" aria-modal="true" aria-labelledby="resultTitle" aria-describedby="resultMessage">
+    <button class="result-close" id="resultClose" type="button" aria-label="Close">&times;</button>
+    <div class="result-icon" aria-hidden="true">
+      <svg class="result-icon-success" viewBox="0 0 52 52" width="56" height="56">
+        <circle class="result-icon-circle" cx="26" cy="26" r="24" fill="none" />
+        <path class="result-icon-check" fill="none" d="M14 27l7 7 17-17" />
+      </svg>
+      <svg class="result-icon-error" viewBox="0 0 52 52" width="56" height="56">
+        <circle class="result-icon-circle" cx="26" cy="26" r="24" fill="none" />
+        <path class="result-icon-cross" fill="none" d="M17 17l18 18" />
+        <path class="result-icon-cross" fill="none" d="M35 17l-18 18" />
+      </svg>
+    </div>
+    <h3 class="result-title" id="resultTitle"></h3>
+    <p class="result-message" id="resultMessage"></p>
+    <button type="button" class="btn result-action" id="resultAction">Done</button>
+  </div>
+</div>
+
+<script src="{% static 'registration/js/payment.js' %}"></script>
+</body>
+</html>

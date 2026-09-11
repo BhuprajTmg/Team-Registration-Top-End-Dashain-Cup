@@ -35,7 +35,7 @@
 
     <div class="hero-chips" aria-label="Tournament highlights">
       <span class="chip">Format: 7-a-side</span>
-      <span class="chip">Matchday squad: 8 to 11</span>
+      <span class="chip">Matchday squad: 8 to 12</span>
       <span class="chip">Premier Players: max 3</span>
     </div>
 
@@ -105,12 +105,12 @@
       <div class="step">
         <div class="step-num">1</div>
         <h4>Submit your squad</h4>
-        <p>Fill in the form with your team name, contact person, Gmail, and a squad of 8–11 players (max 3 Premier).</p>
+        <p>Fill in the form with your team name, contact person, Gmail, and a squad of 8–12 players (max 3 Premier).</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <h4>Pay the entry fee</h4>
-        <p>Once your entry is confirmed by email, settle the $370 team fee to lock in your spot.</p>
+        <p>Pay <strong>${{ entry_fee }}</strong> to PayID <strong>{{ payid_value }}</strong>, then upload your bank screenshot on the payment page.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
@@ -125,7 +125,7 @@
   <div class="wrap">
     <h2 class="section-title">Team registration form</h2>
     <p class="section-intro">
-      Squads may include a maximum of <strong>11 players</strong> for a matchday list.
+      Squads may include a maximum of <strong>12 players</strong> for a matchday list.
       Each squad must include at least <strong>8 non-Premier players</strong>, and no more than
       <strong>3 Premier Players</strong> (Darwin Men’s Premier League 2026 / Australia Cup).
       A confirmation email is sent to your team Gmail.
@@ -181,21 +181,25 @@
       </fieldset>
 
       <fieldset id="field-squad">
-        <legend>Squad list <span class="hint">— 8 to 11 players, max 3 Premier Players</span></legend>
+        <legend>Squad list <span class="hint">— 8 to 12 players, max 3 Premier Players</span></legend>
+        <div class="squad-table-wrap">
         <table class="squad-table" id="squadTable">
           <thead>
             <tr>
               <th class="col-num">#</th>
               <th>Player name</th>
+              <th class="col-player-phone">Player phone</th>
+              <th>Player Gmail</th>
               <th class="col-mpl">Premier Player</th>
               <th class="col-remove"></th>
             </tr>
           </thead>
           <tbody id="squadBody"></tbody>
         </table>
+        </div>
         <div class="squad-actions">
           <button type="button" class="link-btn" id="add-player-btn">+ Add another player</button>
-          <span class="count"><b id="player-count-label">0</b> of 11 players</span>
+          <span class="count"><b id="player-count-label">0</b> of 12 players</span>
         </div>
         <p class="form-note" id="mplNote">0 of 3 Premier Players selected</p>
         <div class="players-error" id="players-error">You need at least 8 players, including at least 8 non-Premier players.</div>
@@ -215,7 +219,7 @@
 
       <div class="submit-row">
         <button type="submit" class="btn" id="submit-btn">Submit registration</button>
-        <span class="form-status">Fee of $370 is payable once your entry is confirmed.</span>
+        <span class="form-status">After submit you will pay ${{ entry_fee }} via PayID and upload a screenshot.</span>
       </div>
       <div class="form-msg" id="form-msg"></div>
     </form>
@@ -314,7 +318,7 @@
     <ul>
       <li><strong>Format:</strong> 7-a-side (6 outfield + 1 goalkeeper).</li>
       <li><strong>Minimum to start/continue:</strong> 5 players.</li>
-      <li><strong>Maximum matchday squad:</strong> 11 players.</li>
+      <li><strong>Maximum matchday squad:</strong> 12 players.</li>
       <li><strong>Substitutes:</strong> rolling; up to 3 substitutes available at one time.</li>
       <li><strong>Ball:</strong> Size 5.</li>
       <li><strong>League matches:</strong> 2 × 10 minutes (20 minutes total).</li>
@@ -341,7 +345,7 @@
     <ul>
       <li>Full strength is 7 players: 1 goalkeeper and 6 outfield.</li>
       <li>A team needs at least 5 eligible players to begin or continue; fewer than 5 may lead to a stoppage/forfeit.</li>
-      <li>Maximum 11 players on the official matchday list; only listed players may take part.</li>
+      <li>Maximum 12 players on the official matchday list; only listed players may take part.</li>
       <li>Substitutions are rolling; no more than 3 substitutes available at once.</li>
       <li>A sent-off player cannot be replaced to restore full strength.</li>
       <li>No emergency additions for injury/absence; team officials cannot enter as players.</li>

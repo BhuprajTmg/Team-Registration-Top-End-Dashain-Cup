@@ -23,6 +23,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         "gmail_link",
         "player_count",
         "squad_size_display",
+        "payment_status",
         "confirmation_email_sent",
         "created_at",
     )
@@ -33,6 +34,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         "squad_size",
         "confirmation_email_sent",
         "organiser_notified",
+        "payment_received_at",
         "created_at",
     )
     search_fields = ("team_name", "manager_name", "home_city", "phone", "gmail")
@@ -50,6 +52,9 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         "logo_preview",
         "logo_filename",
         "logo_content_type",
+        "receipt_preview",
+        "payment_receipt_filename",
+        "payment_received_at",
     )
 
     fieldsets = (
@@ -70,6 +75,17 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
             },
         ),
         ("Contact", {"fields": ("phone", "gmail")}),
+        (
+            "PayID payment",
+            {
+                "fields": (
+                    "receipt_preview",
+                    "payment_receipt_filename",
+                    "payment_received_at",
+                ),
+                "description": "Bank-statement screenshot uploaded after the team paid via PayID.",
+            },
+        ),
         ("Additional information", {"fields": ("experience", "notes")}),
         (
             "Email status",
@@ -141,6 +157,52 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
             filename,
         )
 
+    def _receipt_url(self, obj):
+        return f"/api/teams/{obj.pk}/receipt/"
+
+    @admin.display(description="Payment")
+    def payment_status(self, obj):
+        if obj.has_payment_receipt:
+            when = ""
+            if obj.payment_received_at:
+                when = timezone.localtime(obj.payment_received_at).strftime("%d %b %Y")
+            return format_html(
+                '<a href="{}" target="_blank" rel="noopener">Receipt on file{}</a>',
+                self._receipt_url(obj),
+                f" ({when})" if when else "",
+            )
+            return format_html('<span style="color:#b42318;">{}</span>', "Awaiting screenshot")
+
+    @admin.display(description="Payment screenshot")
+    def receipt_preview(self, obj):
+        if not obj.has_payment_receipt:
+            return format_html("{}", "No PayID screenshot uploaded yet")
+        filename = obj.payment_receipt_filename or "payment-receipt"
+        received = ""
+        if obj.payment_received_at:
+            received = timezone.localtime(obj.payment_received_at).strftime("%Y-%m-%d %H:%M")
+        return format_html(
+            '<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">'
+            '<a href="{0}" target="_blank" rel="noopener">'
+            '<img src="{0}" alt="Payment screenshot" '
+            'style="max-height:220px;max-width:280px;border-radius:10px;'
+            'background:#111;padding:6px;border:1px solid #444;" />'
+            "</a>"
+            "<div>"
+            "<div><strong>{1}</strong></div>"
+            "<div>Received: {2}</div>"
+            '<div style="margin-top:6px;">'
+            '<a href="{0}" target="_blank" rel="noopener">Open full size</a>'
+            " &nbsp;|&nbsp; "
+            '<a href="{0}" download="{1}">Download</a>'
+            "</div>"
+            "</div>"
+            "</div>",
+            self._receipt_url(obj),
+            filename,
+            received or "—",
+        )
+
     def changelist_view(self, request, extra_context=None):
         """Adds the summary cards shown above the list of teams."""
         queryset = TeamRegistration.objects.all()
@@ -152,6 +214,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
             "today": queryset.filter(created_at__date=today).count(),
             "emails_sent": queryset.filter(confirmation_email_sent=True).count(),
             "emails_pending": queryset.filter(confirmation_email_sent=False).count(),
+            "payments_received": queryset.filter(payment_received_at__isnull=False).count(),
         }
         return super().changelist_view(request, extra_context=extra_context)
 
@@ -175,6 +238,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                 "Players",
                 "Previous experience",
                 "Notes",
+                "Payment screenshot",
+                "Payment received at",
                 "Confirmation email sent",
                 "Organiser notified",
             ]
@@ -184,10 +249,11 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
             players_text = "; ".join(
                 (
                     (
-                        f"{p.get('name')} (#{p.get('jersey')})"
-                        if p.get("jersey")
+                        f"{p.get('name')} ({p.get('phone')})"
+                        if p.get("phone")
                         else p.get("name", "")
                     )
+                    + (f" <{p.get('gmail')}>" if p.get("gmail") else "")
                     + (" [Premier]" if p.get("mpl") else "")
                 )
                 for p in (team.players or [])
@@ -207,6 +273,10 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                     players_text,
                     team.experience,
                     team.notes,
+                    "Yes" if team.has_payment_receipt else "No",
+                    timezone.localtime(team.payment_received_at).strftime("%Y-%m-%d %H:%M")
+                    if team.payment_received_at
+                    else "",
                     "Yes" if team.confirmation_email_sent else "No",
                     "Yes" if team.organiser_notified else "No",
                 ]

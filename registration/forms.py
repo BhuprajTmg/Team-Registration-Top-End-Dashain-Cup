@@ -5,8 +5,10 @@ from django import forms
 from .models import TeamRegistration
 
 MIN_PLAYERS = 8
-MAX_PLAYERS = 11
+MAX_PLAYERS = 12
 MIN_NON_PREMIER = 8
+MAX_PREMIER = 3
+GMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", re.IGNORECASE)
 
 
 def normalize_australian_phone(raw_phone):
@@ -33,17 +35,43 @@ def normalize_players(raw_players):
 
     players = []
     mpl_count = 0
+    phones = []
+    gmails = []
     for item in raw_players:
         if not isinstance(item, dict):
             continue
         name = str(item.get("name") or "").strip()
-        jersey_raw = item.get("jersey")
-        jersey = str(jersey_raw).strip() if jersey_raw not in (None, "") else None
+        phone_raw = item.get("phone") or item.get("jersey")
+        phone = str(phone_raw).strip() if phone_raw not in (None, "") else ""
+        gmail = str(item.get("gmail") or "").strip().lower()
         mpl = bool(item.get("mpl"))
-        if name:
-            if mpl:
-                mpl_count += 1
-            players.append({"name": name, "jersey": jersey, "mpl": mpl})
+        if not name and not phone and not gmail:
+            continue
+        if not name:
+            raise forms.ValidationError("Every player needs a full name.")
+        try:
+            phone = normalize_australian_phone(phone)
+        except forms.ValidationError:
+            raise forms.ValidationError(
+                "Every player needs a valid Australian phone number, numbers only."
+            )
+        if not GMAIL_RE.fullmatch(gmail):
+            raise forms.ValidationError(
+                "Every player needs a Gmail address ending in @gmail.com."
+            )
+        if phone in phones:
+            raise forms.ValidationError(
+                "Each player needs their own phone number."
+            )
+        if gmail in gmails:
+            raise forms.ValidationError(
+                "Each player needs their own Gmail address."
+            )
+        if mpl:
+            mpl_count += 1
+        phones.append(phone)
+        gmails.append(gmail)
+        players.append({"name": name, "phone": phone, "gmail": gmail, "mpl": mpl})
 
     if len(players) < MIN_PLAYERS:
         raise forms.ValidationError(
@@ -53,7 +81,7 @@ def normalize_players(raw_players):
         raise forms.ValidationError(
             f"A matchday squad can have at most {MAX_PLAYERS} players."
         )
-    if mpl_count > 3:
+    if mpl_count > MAX_PREMIER:
         raise forms.ValidationError(
             "A squad may include at most 3 Premier Players."
         )

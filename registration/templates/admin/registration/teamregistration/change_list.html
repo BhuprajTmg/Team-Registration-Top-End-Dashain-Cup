@@ -19,6 +19,10 @@
         <span class="reg-summary-value">{{ summary.emails_pending }}</span>
         <span class="reg-summary-label">Emails not sent</span>
       </div>
+      <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.payments_received|default:0 }}</span>
+        <span class="reg-summary-label">PayID screenshots</span>
+      </div>
     </div>
 
     {% if summary.total == 0 %}

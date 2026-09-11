@@ -15,7 +15,12 @@ from dashain_cup.settings import env_bool, env_int, env_str
 from .models import TeamRegistration
 
 SAMPLE_PLAYERS = [
-    {"name": f"Player {i}", "jersey": str(i)} for i in range(1, 9)
+    {
+        "name": f"Player {i}",
+        "phone": f"04000000{i:02d}",
+        "gmail": f"player{i}@gmail.com",
+    }
+    for i in range(1, 9)
 ]
 
 SAMPLE_LOGO = (
@@ -58,7 +63,10 @@ class RegistrationEndpointTests(TestCase):
         self.assertNotContains(response, "Registered teams")
         self.assertContains(response, "grace-dashain-cup-7aside-rulebook.pdf")
         self.assertContains(response, "Premier Players")
-        self.assertContains(response, "8 to 11")
+        self.assertContains(response, "8 to 12")
+        self.assertContains(response, "Player Gmail")
+        self.assertContains(response, "Player phone")
+        self.assertContains(response, "PayID")
 
     def test_logo_upload_is_saved_and_served(self):
         response = self.post_registration()
@@ -101,6 +109,38 @@ class RegistrationEndpointTests(TestCase):
         self.assertTrue(team.check_pin("4821"))
         self.assertFalse(team.check_pin("0000"))
         self.assertEqual(team.squad_size, "7-9")
+        self.assertTrue(team.payment_token)
+        self.assertIn("paymentUrl", response.json())
+        self.assertFalse(team.has_payment_receipt)
+
+    def test_payment_page_and_receipt_upload(self):
+        created = self.post_registration()
+        team = TeamRegistration.objects.get()
+        pay_url = created.json()["paymentUrl"]
+        page = self.client.get(pay_url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "0000000000")
+        self.assertContains(page, "$370")
+
+        upload = self.client.post(
+            reverse("registration:pay_submit", args=[team.payment_token]),
+            data=json.dumps({"receipt": SAMPLE_LOGO}),
+            content_type="application/json",
+        )
+        self.assertEqual(upload.status_code, 200)
+        team.refresh_from_db()
+        self.assertTrue(team.has_payment_receipt)
+        self.assertIsNotNone(team.payment_received_at)
+
+        receipt = self.client.get(reverse("registration:team_receipt", args=[team.pk]))
+        self.assertEqual(receipt.status_code, 403)
+
+        User = get_user_model()
+        User.objects.create_superuser("staff", "staff@example.com", "password123")
+        self.client.login(username="staff", password="password123")
+        receipt = self.client.get(reverse("registration:team_receipt", args=[team.pk]))
+        self.assertEqual(receipt.status_code, 200)
+        self.assertEqual(receipt["Content-Type"], "image/png")
 
     def test_public_teams_list_hides_gmail_and_pin(self):
         self.post_registration()
@@ -134,7 +174,14 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(good.status_code, 200)
         self.assertTrue(good.json()["ok"])
 
-        new_players = [{"name": f"Updated {i}", "jersey": str(i)} for i in range(1, 9)]
+        new_players = [
+            {
+                "name": f"Updated {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"updated{i}@gmail.com",
+            }
+            for i in range(1, 9)
+        ]
         updated = self.client.post(
             reverse("registration:update_team", args=[team.pk]),
             data=json.dumps(
@@ -171,7 +218,12 @@ class RegistrationEndpointTests(TestCase):
 
     def test_too_many_mpl_players_is_rejected(self):
         players = [
-            {"name": f"Player {i}", "jersey": str(i), "mpl": i <= 4}
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+                "mpl": i <= 4,
+            }
             for i in range(1, 9)
         ]
         response = self.post_registration(players=players)
@@ -181,7 +233,12 @@ class RegistrationEndpointTests(TestCase):
 
     def test_too_few_non_premier_players_is_rejected(self):
         players = [
-            {"name": f"Player {i}", "jersey": str(i), "mpl": i <= 3}
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+                "mpl": i <= 3,
+            }
             for i in range(1, 9)
         ]
         response = self.post_registration(players=players)
@@ -191,7 +248,12 @@ class RegistrationEndpointTests(TestCase):
 
     def test_mpl_flag_is_saved(self):
         players = [
-            {"name": f"Player {i}", "jersey": str(i), "mpl": i <= 2}
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+                "mpl": i <= 2,
+            }
             for i in range(1, 11)
         ]
         response = self.post_registration(players=players)
@@ -199,14 +261,55 @@ class RegistrationEndpointTests(TestCase):
         team = TeamRegistration.objects.get()
         self.assertEqual(sum(1 for p in team.players if p.get("mpl")), 2)
 
-    def test_more_than_eleven_players_is_rejected(self):
+    def test_more_than_twelve_players_is_rejected(self):
         players = [
-            {"name": f"Player {i}", "jersey": str(i)} for i in range(1, 13)
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+            }
+            for i in range(1, 14)
         ]
         response = self.post_registration(players=players)
         self.assertEqual(response.status_code, 400)
-        self.assertIn("11", response.json()["message"])
+        self.assertIn("12", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_player_gmail_is_required(self):
+        players = [
+            {"name": f"Player {i}", "phone": f"04000000{i:02d}"} for i in range(1, 9)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Gmail", response.json()["message"])
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_player_phone_rejects_text(self):
+        players = [
+            {
+                "name": f"Player {i}",
+                "phone": "not a number" if i == 1 else f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+            }
+            for i in range(1, 9)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("phone", response.json()["message"].lower())
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_twelve_players_are_accepted(self):
+        players = [
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": f"player{i}@gmail.com",
+            }
+            for i in range(1, 13)
+        ]
+        response = self.post_registration(players=players)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(TeamRegistration.objects.get().players), 12)
 
     def test_non_gmail_address_is_rejected(self):
         response = self.post_registration(gmail="team@yahoo.com")

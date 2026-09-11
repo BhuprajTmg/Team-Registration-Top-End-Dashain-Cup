@@ -1,5 +1,13 @@
+import secrets
+
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.urls import reverse
+from django.utils import timezone
+
+
+def generate_payment_token() -> str:
+    return secrets.token_urlsafe(24)
 
 
 class TeamRegistration(models.Model):
@@ -31,7 +39,7 @@ class TeamRegistration(models.Model):
     )
     notes = models.TextField(blank=True, default="")
 
-    # Squad roster: [{"name": "...", "jersey": "10"|null, "mpl": bool}, ...]
+    # Squad roster: [{"name", "phone", "gmail", "mpl"}, ...]
     players = models.JSONField(default=list, blank=True)
     # Hashed 4-digit PIN used to edit / withdraw the registration publicly.
     pin_hash = models.CharField(max_length=128, blank=True, default="")
@@ -43,6 +51,17 @@ class TeamRegistration(models.Model):
 
     confirmation_email_sent = models.BooleanField(default=False)
     organiser_notified = models.BooleanField(default=False)
+
+    payment_token = models.CharField(
+        max_length=64,
+        unique=True,
+        default=generate_payment_token,
+        editable=False,
+    )
+    payment_receipt = models.BinaryField(blank=True, null=True, editable=False)
+    payment_receipt_content_type = models.CharField(max_length=64, blank=True, default="")
+    payment_receipt_filename = models.CharField(max_length=255, blank=True, default="")
+    payment_received_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -62,6 +81,11 @@ class TeamRegistration(models.Model):
             return False
         return check_password(str(pin).strip(), self.pin_hash)
 
+    def save(self, *args, **kwargs):
+        if not self.payment_token:
+            self.payment_token = generate_payment_token()
+        super().save(*args, **kwargs)
+
     @staticmethod
     def squad_size_for_count(count: int) -> str:
         if count <= 9:
@@ -75,6 +99,17 @@ class TeamRegistration(models.Model):
     @property
     def has_logo(self) -> bool:
         return bool(self.logo)
+
+    @property
+    def has_payment_receipt(self) -> bool:
+        return bool(self.payment_receipt)
+
+    def mark_payment_received(self) -> None:
+        if not self.payment_received_at:
+            self.payment_received_at = timezone.now()
+
+    def payment_path(self) -> str:
+        return reverse("registration:pay", args=[self.payment_token])
 
     def public_dict(self) -> dict:
         """Shape expected by the public teams list on the registration page."""
