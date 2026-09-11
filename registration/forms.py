@@ -125,11 +125,11 @@ class TeamRegistrationForm(forms.ModelForm):
         self.fields["notes"].required = False
         self.fields["category"].required = True
         self.fields["category"].choices = [
-            ("", "Select Men's or Veteran"),
+            ("", "Select Female, Kids, Men's or Veteran"),
             *TeamRegistration.CATEGORY_CHOICES,
         ]
         self.fields["category"].error_messages["required"] = (
-            "Please select Men's or Veteran."
+            "Please select Female, Kids, Men's or Veteran."
         )
         self.fields["team_name"].error_messages["required"] = "Enter your team name."
         self.fields["manager_name"].error_messages["required"] = (
@@ -165,7 +165,9 @@ class TeamRegistrationForm(forms.ModelForm):
         category = (self.cleaned_data.get("category") or "").strip()
         valid = {choice for choice, _label in TeamRegistration.CATEGORY_CHOICES}
         if category not in valid:
-            raise forms.ValidationError("Please select Men's or Veteran.")
+            raise forms.ValidationError(
+                "Please select Female, Kids, Men's or Veteran."
+            )
         return category
 
     def clean_pin(self):

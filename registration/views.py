@@ -295,7 +295,7 @@ class TeamUpdateView(View):
                 {
                     "ok": False,
                     "status": "error",
-                    "message": "Please select Men's or Veteran.",
+                    "message": "Please select Female, Kids, Men's or Veteran.",
                 },
                 status=400,
             )
