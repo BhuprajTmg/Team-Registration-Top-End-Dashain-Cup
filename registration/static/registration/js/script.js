@@ -9,7 +9,6 @@
   var MIN_PLAYERS = 8;
   var MAX_PLAYERS = 12;
   var MAX_MPL = 3;
-  var MIN_NON_PREMIER = 8;
   var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
   var allTeams = [];
   var cachedLogoDataUrl = null;
@@ -397,7 +396,7 @@
     if (playersError) {
       playersError.style.display = "none";
       playersError.textContent =
-        "You need at least 8 players, including at least 8 non-Premier players.";
+        "You need at least 8 players. Premier Players are optional (maximum 3).";
     }
     if (formMsg) {
       formMsg.className = "form-msg";
@@ -661,7 +660,6 @@
     var mplSelected = players.filter(function (p) {
       return p.mpl;
     }).length;
-    var nonPremier = players.length - mplSelected;
     if (mplSelected > MAX_MPL) {
       setFieldError("field-squad");
       if (mplNote) mplNote.classList.add("warn");
@@ -670,17 +668,6 @@
         playersError.style.display = "block";
       }
       missing.push("Premier Players (max 3)");
-    }
-    if (players.length >= MIN_PLAYERS && nonPremier < MIN_NON_PREMIER) {
-      setFieldError("field-squad");
-      if (playersError) {
-        playersError.textContent =
-          "Each squad must include at least 8 non-Premier players (you have " +
-          nonPremier +
-          ").";
-        playersError.style.display = "block";
-      }
-      missing.push("At least 8 non-Premier players");
     }
 
     return {

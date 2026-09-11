@@ -65,6 +65,16 @@ def _display_context(registration):
     }
 
 
+def _attach_payment_receipt(message, registration) -> None:
+    """Attach the PayID screenshot to the organiser email only."""
+    receipt = getattr(registration, "payment_receipt", None)
+    if not receipt:
+        return
+    filename = registration.payment_receipt_filename or "payment-receipt.jpg"
+    content_type = registration.payment_receipt_content_type or "image/jpeg"
+    message.attach(filename, bytes(receipt), content_type)
+
+
 def email_is_configured() -> bool:
     """True once real SMTP credentials have been set (see .env)."""
     return bool(settings.EMAIL_HOST_USER and settings.EMAIL_HOST_PASSWORD)
@@ -129,6 +139,7 @@ def send_organiser_notification(registration) -> bool:
         to=[settings.ORGANISER_EMAIL],
     )
     message.attach_alternative(html_body, "text/html")
+    _attach_payment_receipt(message, registration)
 
     try:
         message.send(fail_silently=False)

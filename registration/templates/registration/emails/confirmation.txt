@@ -7,7 +7,8 @@ Here's what we received:
   Captain: {{ registration.manager_name }}
   Phone: {{ registration.phone }}
   Squad Size: {{ squad_size_display }}
-  Players: {{ players_display_text }}
+
+{% include "registration/emails/_players_table.txt" %}
 
 {% if has_payment_receipt %}
 We have your ${{ entry_fee }} PayID screenshot on file (PayID {{ payid_value }}, {{ payid_name }}).

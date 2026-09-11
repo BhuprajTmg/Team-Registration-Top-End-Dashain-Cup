@@ -1,0 +1,25 @@
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse;font-size:13px;line-height:1.4;">
+  <tr>
+    <td colspan="5" style="padding:0 0 8px;color:#6b6250;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;">Squad</td>
+  </tr>
+  <tr>
+    <th align="left" style="padding:8px 6px;border-bottom:2px solid #e9b949;color:#0f2050;font-size:11px;text-transform:uppercase;">#</th>
+    <th align="left" style="padding:8px 6px;border-bottom:2px solid #e9b949;color:#0f2050;font-size:11px;text-transform:uppercase;">Name</th>
+    <th align="left" style="padding:8px 6px;border-bottom:2px solid #e9b949;color:#0f2050;font-size:11px;text-transform:uppercase;">Phone</th>
+    <th align="left" style="padding:8px 6px;border-bottom:2px solid #e9b949;color:#0f2050;font-size:11px;text-transform:uppercase;">Gmail</th>
+    <th align="left" style="padding:8px 6px;border-bottom:2px solid #e9b949;color:#0f2050;font-size:11px;text-transform:uppercase;">Premier</th>
+  </tr>
+  {% for p in players %}
+  <tr>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{{ forloop.counter }}</td>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;font-weight:700;">{{ p.name }}</td>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;white-space:nowrap;">{{ p.phone }}</td>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{{ p.gmail }}</td>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{% if p.mpl %}Yes{% else %}—{% endif %}</td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="5" style="padding:8px 6px;color:#6b6250;">No players listed.</td>
+  </tr>
+  {% endfor %}
+</table>
