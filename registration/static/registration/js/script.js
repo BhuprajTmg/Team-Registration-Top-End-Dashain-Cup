@@ -13,7 +13,6 @@
   var allTeams = [];
   var cachedLogoDataUrl = null;
   var cachedReceiptDataUrl = null;
-  var PHONE_PREFIX = "0447";
 
   var form = document.getElementById("team-form");
   if (!form) return;
@@ -26,8 +25,11 @@
   var submitBtn = document.getElementById("submit-btn");
   var formMsg = document.getElementById("form-msg");
   var agreeCheck = document.getElementById("agreeCheck");
+  var agreeTermsCheck = document.getElementById("agreeTermsCheck");
   var rulesLink = document.getElementById("rules-link");
+  var termsLink = document.getElementById("terms-link");
   var agreeRow = document.getElementById("field-agree");
+  var termsRow = document.getElementById("field-terms");
   var modalRoot = document.getElementById("modal-root");
 
   var resultOverlay = document.getElementById("resultOverlay");
@@ -295,8 +297,8 @@
       '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefill.name ? escapeHtml(prefill.name) : "") +
       '"></td>' +
-      '<td class="player-phone-cell"><input type="tel" class="player-phone-input" inputmode="numeric" maxlength="13" placeholder="0447 123 456" autocomplete="off" required value="' +
-      escapeHtml(prefill.phone ? prefill.phone : PHONE_PREFIX) +
+      '<td class="player-phone-cell"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
+      (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
       '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
@@ -344,37 +346,70 @@
     return players;
   }
 
-  /* ---- Rules modal ---- */
-  function openRulesModal() {
-    var tpl = document.getElementById("rules-content-template");
+  /* ---- Rules / terms modals ---- */
+  function openContentModal(title, templateId) {
+    var tpl = document.getElementById(templateId);
+    if (!tpl) return;
     modalRoot.innerHTML =
-      '<div class="modal-backdrop" id="rules-backdrop">' +
+      '<div class="modal-backdrop" id="doc-backdrop">' +
       '<div class="modal-box rules-modal-box" role="dialog" aria-modal="true">' +
-      "<h3>Grace Dashain Cup — Official 7-a-side Rulebook</h3>" +
-      '<div id="rules-body"></div>' +
-      '<div class="modal-actions"><button type="button" class="btn" id="rules-close-btn">Close</button></div>' +
+      "<h3>" +
+      title +
+      "</h3>" +
+      '<div id="doc-body"></div>' +
+      '<div class="modal-actions"><button type="button" class="btn" id="doc-close-btn">Close</button></div>' +
       "</div></div>";
-    document.getElementById("rules-body").appendChild(tpl.content.cloneNode(true));
-    function closeRules() {
+    document.getElementById("doc-body").appendChild(tpl.content.cloneNode(true));
+    function closeDoc() {
       modalRoot.innerHTML = "";
     }
-    document.getElementById("rules-close-btn").addEventListener("click", closeRules);
-    document.getElementById("rules-backdrop").addEventListener("click", function (e) {
-      if (e.target.id === "rules-backdrop") closeRules();
+    document.getElementById("doc-close-btn").addEventListener("click", closeDoc);
+    document.getElementById("doc-backdrop").addEventListener("click", function (e) {
+      if (e.target.id === "doc-backdrop") closeDoc();
     });
   }
 
-  rulesLink.addEventListener("click", function (e) {
-    e.preventDefault();
-    openRulesModal();
-  });
+  if (rulesLink) {
+    rulesLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      openContentModal(
+        "2nd Grace Dashain Cup — Official 7-a-side Rulebook",
+        "rules-content-template"
+      );
+    });
+  }
+  if (termsLink) {
+    termsLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      openContentModal(
+        "2nd Grace Dashain Cup — Terms and Conditions",
+        "terms-content-template"
+      );
+    });
+  }
 
-  agreeCheck.addEventListener("change", function () {
-    if (agreeCheck.checked) {
-      openRulesModal();
-      agreeRow.classList.remove("err");
-    }
-  });
+  if (agreeCheck) {
+    agreeCheck.addEventListener("change", function () {
+      if (agreeCheck.checked) {
+        openContentModal(
+          "2nd Grace Dashain Cup — Official 7-a-side Rulebook",
+          "rules-content-template"
+        );
+        if (agreeRow) agreeRow.classList.remove("err");
+      }
+    });
+  }
+  if (agreeTermsCheck) {
+    agreeTermsCheck.addEventListener("change", function () {
+      if (agreeTermsCheck.checked) {
+        openContentModal(
+          "2nd Grace Dashain Cup — Terms and Conditions",
+          "terms-content-template"
+        );
+        if (termsRow) termsRow.classList.remove("err");
+      }
+    });
+  }
 
   function clearFieldErrors() {
     [
@@ -384,6 +419,7 @@
       "field-contact",
       "field-gmail",
       "field-agree",
+      "field-terms",
       "field-squad",
       "field-receipt",
     ].forEach(function (id) {
@@ -434,27 +470,8 @@
     return plus + cleaned.replace(/\+/g, "").replace(/[^\d()\s-]/g, "");
   }
 
-  function applyPhonePrefix(rawPhone) {
-    var digits = sanitizePhoneInput(rawPhone).replace(/\D/g, "");
-    if (digits.indexOf("61447") === 0) {
-      digits = digits.slice(5);
-    } else if (digits.indexOf(PHONE_PREFIX) === 0) {
-      digits = digits.slice(PHONE_PREFIX.length);
-    } else if (digits.indexOf("447") === 0) {
-      digits = digits.slice(3);
-    }
-    var rest = digits.slice(0, 6);
-    var value = PHONE_PREFIX;
-    if (rest) {
-      value += " " + rest.slice(0, 3);
-      if (rest.length > 3) value += " " + rest.slice(3);
-    }
-    return value;
-  }
-
   function wirePhoneInput(input, fieldId) {
     if (!input) return;
-    input.value = applyPhonePrefix(input.value || PHONE_PREFIX);
     input.addEventListener("keydown", function (event) {
       if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
         return;
@@ -464,7 +481,8 @@
       }
     });
     input.addEventListener("input", function () {
-      this.value = applyPhonePrefix(this.value);
+      var cleaned = sanitizePhoneInput(this.value);
+      if (cleaned !== this.value) this.value = cleaned;
       if (fieldId && normalizeAustralianPhone(this.value)) {
         var wrap = document.getElementById(fieldId);
         if (wrap) wrap.classList.remove("err");
@@ -472,14 +490,14 @@
     });
     input.addEventListener("paste", function (event) {
       event.preventDefault();
-      this.value = applyPhonePrefix(event.clipboardData ? event.clipboardData.getData("text") || "" : "");
+      this.value = sanitizePhoneInput(event.clipboardData ? event.clipboardData.getData("text") || "" : "");
       this.dispatchEvent(new Event("input", { bubbles: true }));
     });
     if (fieldId) {
       input.addEventListener("blur", function () {
         var wrap = document.getElementById(fieldId);
         if (!wrap) return;
-        this.value = applyPhonePrefix(this.value);
+        this.value = sanitizePhoneInput(this.value);
         wrap.classList.toggle("err", !normalizeAustralianPhone(this.value));
       });
     }
@@ -512,19 +530,16 @@
     }
     var normalizedPhone = normalizeAustralianPhone(contactPhone);
     var phoneError = document.getElementById("phone-error");
-    if (!contactPhone || contactPhone.replace(/\D/g, "") === PHONE_PREFIX) {
+    if (!contactPhone) {
       setFieldError("field-contact");
-      if (phoneError) {
-        phoneError.textContent = "Add the rest of the 0447 phone number, for example 0447 123 456.";
-      }
-      missing.push("Phone number (0447 plus the remaining digits)");
+      missing.push("Phone number");
     } else if (!normalizedPhone) {
       setFieldError("field-contact");
       if (phoneError) {
         phoneError.textContent =
-          "Enter a valid 0447 phone number, for example 0447 123 456.";
+          "Enter a valid Australian phone number, for example 0400 123 456.";
       }
-      missing.push("Valid 0447 phone number");
+      missing.push("Valid Australian phone number");
     }
     if (!gmail) {
       setFieldError("field-gmail");
@@ -559,7 +574,11 @@
 
     if (!agreeCheck || !agreeCheck.checked) {
       setFieldError("field-agree");
-      missing.push("Confirmation / rules agreement");
+      missing.push("Rulebook agreement");
+    }
+    if (!agreeTermsCheck || !agreeTermsCheck.checked) {
+      setFieldError("field-terms");
+      missing.push("Terms and Conditions agreement");
     }
 
     var receiptInput = document.getElementById("receiptFile");
@@ -637,7 +656,7 @@
       setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
-          "Every player needs a name, 0447 phone number (add the remaining digits), and Gmail. Phone numbers and Gmails cannot be repeated.";
+          "Every player needs a name, Australian phone number (numbers only), and Gmail. Phone numbers and Gmails cannot be repeated.";
         playersError.style.display = "block";
       }
       missing.push("Player name, phone number and Gmail for every row");
@@ -811,6 +830,7 @@
         teamLogo: teamLogo,
         receipt: paymentReceipt,
         agree: true,
+        agreeTerms: true,
       });
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
@@ -823,7 +843,7 @@
           receiptPreview.style.display = "none";
         }
         var contactPhone = document.getElementById("contactPhone");
-        if (contactPhone) contactPhone.value = PHONE_PREFIX;
+        if (contactPhone) contactPhone.value = "";
         squadBody.innerHTML = "";
         for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
         updateMplAvailability();

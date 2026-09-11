@@ -40,6 +40,7 @@ VALID_PAYLOAD = {
     "experience": "N/A",
     "notes": "N/A",
     "agree": True,
+    "agree_terms": True,
     "pin": "4821",
     "players": SAMPLE_PLAYERS,
     "teamLogo": SAMPLE_LOGO,
@@ -64,6 +65,8 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "Team logo")
         self.assertContains(response, "footer-logo")
         self.assertNotContains(response, "Registered teams")
+        self.assertContains(response, "2nd Grace Dashain Cup")
+        self.assertContains(response, "2nd-grace-dashain-cup-2026-terms-and-conditions.pdf")
         self.assertContains(response, "grace-dashain-cup-7aside-rulebook.pdf")
         self.assertContains(response, "Premier Players")
         self.assertContains(response, "8 to 12")
@@ -73,7 +76,11 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "0000000000")
         self.assertContains(response, 'id="pay"')
         self.assertContains(response, 'id="receiptFile"')
-        self.assertContains(response, 'value="0447"')
+        self.assertContains(response, 'placeholder="04********"')
+        self.assertNotContains(response, 'value="0447"')
+        self.assertContains(response, "gurkhalifc.official@gmail.com")
+        self.assertContains(response, "$349")
+        self.assertContains(response, 'id="agreeTermsCheck"')
         self.assertContains(response, "Bank statement screenshot")
 
     def test_logo_upload_is_saved_and_served(self):
@@ -111,7 +118,7 @@ class RegistrationEndpointTests(TestCase):
         team = TeamRegistration.objects.get()
         self.assertEqual(team.team_name, "Test Tigers")
         self.assertEqual(team.gmail, "testtigers@gmail.com")
-        self.assertEqual(team.tournament, "Dashain Cup 2026")
+        self.assertEqual(team.tournament, "2nd Grace Dashain Cup 2026")
         self.assertEqual(len(team.players), 8)
         self.assertTrue(team.has_logo)
         self.assertTrue(team.check_pin("4821"))
@@ -136,7 +143,7 @@ class RegistrationEndpointTests(TestCase):
         page = self.client.get(pay_url)
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "0000000000")
-        self.assertContains(page, "$370")
+        self.assertContains(page, "$349")
 
         upload = self.client.post(
             reverse("registration:pay_submit", args=[team.payment_token]),
@@ -384,6 +391,12 @@ class RegistrationEndpointTests(TestCase):
     def test_agreement_is_required(self):
         response = self.post_registration(agree=False)
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_terms_agreement_is_required(self):
+        response = self.post_registration(agree_terms=False)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Terms and Conditions", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
     @override_settings(

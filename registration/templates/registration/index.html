@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Gurkhali FC Dashain Cup {{ tournament_year }} — Team Registration</title>
+<title>Gurkhali FC 2nd Grace Dashain Cup {{ tournament_year }} — Team Registration</title>
 <meta name="description" content="Register your team for Gurkhali FC {{ tournament }} — {{ division }}. No login required." />
 <link rel="icon" type="image/webp" href="{% static 'registration/img/logo.webp' %}" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <h1 class="hero-title">Dashain Cup <span>{{ tournament_year }}</span></h1>
+    <h1 class="hero-title">2nd Grace Dashain Cup <span>{{ tournament_year }}</span></h1>
     <p class="hero-sub">
       Open 7A-side football competition — register your team and lock in your squad before the draw.
     </p>
@@ -78,7 +78,7 @@
     </div>
     <div class="fact">
       <div class="fact-label">Fee</div>
-      <div class="fact-value">$370 per team</div>
+      <div class="fact-value">${{ entry_fee }} per team</div>
     </div>
   </div>
 </section>
@@ -166,10 +166,10 @@
           <div id="field-contact">
             <label for="contactPhone">Phone number <span class="req">*</span></label>
             <input type="tel" id="contactPhone" name="phone" autocomplete="tel"
-              inputmode="numeric" maxlength="13" placeholder="0447 123 456" value="0447"
+              class="phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********"
               pattern="(?:0[23478]|\+61[23478])(?:[ ()-]*[0-9]){8}" required />
-            <span class="hint">Starts with 0447. Add the rest of the number — digits only.</span>
-            <span class="error-text" id="phone-error">Enter the rest of the 0447 phone number.</span>
+            <span class="hint">Numbers only. Australian mobile or landline, for example 0400 123 456.</span>
+            <span class="error-text" id="phone-error">Enter a valid Australian phone number.</span>
           </div>
         </div>
         <div class="field-row single" id="field-gmail">
@@ -207,16 +207,28 @@
         <div class="players-error" id="players-error">You need at least 8 players. Premier Players are optional (maximum 3).</div>
       </fieldset>
 
-      <fieldset id="field-agree">
+      <fieldset>
         <legend>Confirmation</legend>
-        <div class="checkbox-row">
-          <input type="checkbox" id="agreeCheck" required />
-          <label for="agreeCheck">
-            I confirm the squad details above are accurate, that the Premier Player limit is respected,
-            and I agree to the <a href="#" id="rules-link">official Grace Dashain Cup 7-a-side rulebook</a>.
-          </label>
+        <div id="field-agree">
+          <div class="checkbox-row">
+            <input type="checkbox" id="agreeCheck" required />
+            <label for="agreeCheck">
+              I confirm the squad details above are accurate, that the Premier Player limit is respected,
+              and I agree to the <a href="#" id="rules-link">official 2nd Grace Dashain Cup 7-a-side rulebook</a>.
+            </label>
+          </div>
+          <span class="error-text">Tick the box to confirm you agree to the tournament rulebook.</span>
         </div>
-        <span class="error-text">Tick the box to confirm you agree to the tournament rules.</span>
+        <div id="field-terms">
+          <div class="checkbox-row">
+            <input type="checkbox" id="agreeTermsCheck" required />
+            <label for="agreeTermsCheck">
+              I have read and agree to the
+              <a href="#" id="terms-link">2nd Grace Dashain Cup Terms and Conditions</a>.
+            </label>
+          </div>
+          <span class="error-text">Tick the box to confirm you agree to the Terms and Conditions.</span>
+        </div>
       </fieldset>
 
       <fieldset id="pay">
@@ -266,7 +278,7 @@
       </div>
       <div class="footer-contact">
         <div>Richardson Park, Darwin NT</div>
-        <div><a href="mailto:Gurkhalifc@gmail.com">Gurkhalifc@gmail.com</a></div>
+        <div><a href="mailto:{{ club_email }}">{{ club_email }}</a></div>
       </div>
     </div>
     <div class="footer-bottom">
@@ -489,6 +501,101 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=squad2"></script>
+<template id="terms-content-template">
+  <div class="rules-download">
+    <p>2nd Grace Dashain Cup 2026 Terms and Conditions (Version 1.0, 10 September 2026). Review the full PDF, or read the key points below.</p>
+    <a class="btn btn-ghost" href="{% static 'registration/docs/2nd-grace-dashain-cup-2026-terms-and-conditions.pdf' %}" target="_blank" rel="noopener">
+      Download official PDF
+    </a>
+  </div>
+  <div class="toc">
+    <h4>Contents</h4>
+    <ol>
+      <li><a href="#t-intro">Agreement</a></li>
+      <li><a href="#t-eligibility">Eligibility and registration</a></li>
+      <li><a href="#t-fees">Fees</a></li>
+      <li><a href="#t-fixtures">Fixtures and rules</a></li>
+      <li><a href="#t-conduct">Conduct and behaviour</a></li>
+      <li><a href="#t-risk">Risk, liability and indemnity</a></li>
+      <li><a href="#t-authority">Authority of the Committee</a></li>
+      <li><a href="#t-law">Governing law</a></li>
+      <li><a href="#t-accept">Electronic acceptance</a></li>
+    </ol>
+  </div>
+
+  <section id="t-intro">
+    <h4>Agreement</h4>
+    <p>These Terms and Conditions apply to the 2nd Grace Dashain Cup 2026, organised by Gurkhali FC on Saturday, 3 October 2026 at Richardson Park, Darwin NT. These Terms and the Official Rulebook together form the agreement with each participating team.</p>
+    <p>By registering, each team confirms it has read, understood and agrees to be bound by these Terms and the Official Rulebook.</p>
+  </section>
+
+  <section id="t-eligibility">
+    <h4>1. Eligibility and registration</h4>
+    <ul>
+      <li>Registration is not confirmed until the entry fee is received in full and the Committee confirms the team’s place in writing.</li>
+      <li>Teams must provide accurate identification for all players and officials. The Committee may require photo ID, and age evidence for junior players.</li>
+      <li>If satisfactory identification is not produced when requested, the player may be refused the field.</li>
+      <li>No players may be added to a squad on tournament day. Late additions or substitutions on the day are not permitted.</li>
+    </ul>
+  </section>
+
+  <section id="t-fees">
+    <h4>2. Fees</h4>
+    <ul>
+      <li>All entry fees are non-refundable if a team withdraws, fails to attend, is disqualified, or is removed from the Event.</li>
+      <li>If the Committee cancels the Event, it may, at its discretion, refund all or part of the entry fee.</li>
+    </ul>
+  </section>
+
+  <section id="t-fixtures">
+    <h4>3. Fixtures and rules</h4>
+    <ul>
+      <li>The Committee may amend arrangements for weather, venue, safety, entries or scheduling, and will notify teams of material changes as soon as practicable.</li>
+      <li>Referee decisions on matters of play are final.</li>
+      <li>Administrative and disciplinary matters are determined under the Official Rulebook.</li>
+    </ul>
+  </section>
+
+  <section id="t-conduct">
+    <h4>4. Conduct and behaviour</h4>
+    <ul>
+      <li>Players, officials, supporters and guests must act with respect, fairness and good sportsmanship.</li>
+      <li>Misconduct may result in a warning, dismissal, sending off, suspension, forfeiture, or removal from the Event.</li>
+      <li>Each team is responsible for the conduct of its players, officials, supporters and guests.</li>
+      <li>The Committee may require any person behaving unsafely or contrary to these Terms to leave the venue immediately.</li>
+    </ul>
+  </section>
+
+  <section id="t-risk">
+    <h4>5. Risk, liability and indemnity</h4>
+    <ul>
+      <li>Participation is at your own risk, including collision, injury, concussion, heat illness and uneven ground.</li>
+      <li>Nothing in these Terms excludes rights that cannot be excluded under Australian law.</li>
+      <li>To the extent permitted by law, the Committee excludes liability for death or personal injury, and for property loss, except where that liability cannot lawfully be excluded.</li>
+      <li>Participants release and indemnify Gurkhali FC, its committee, officials, referees, volunteers and contractors as set out in the full PDF.</li>
+      <li>This release does not apply to players under 18; junior consent is dealt with separately.</li>
+      <li>Public liability insurance is held for the Event. It does not cover personal accident. Each team must arrange its own insurance and provide evidence on request.</li>
+    </ul>
+  </section>
+
+  <section id="t-authority">
+    <h4>6. Authority of the Committee</h4>
+    <ul>
+      <li>The Committee may refuse or cancel registration, remove participants or teams, and make decisions needed for fair and safe conduct of the Event.</li>
+    </ul>
+  </section>
+
+  <section id="t-law">
+    <h4>7. Governing law</h4>
+    <p>These Terms are governed by the laws of the Northern Territory of Australia. The parties submit to the courts of the Northern Territory.</p>
+  </section>
+
+  <section id="t-accept">
+    <h4>Electronic acceptance</h4>
+    <p>By submitting this registration and ticking the Terms and Conditions box, the person completing the form confirms the team’s acceptance of these Terms and the Official Rulebook. The Committee will retain the registration record, including the date and time of submission.</p>
+  </section>
+</template>
+
+<script src="{% static 'registration/js/script.js' %}?v=branding1"></script>
 </body>
 </html>
