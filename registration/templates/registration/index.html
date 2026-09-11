@@ -183,6 +183,22 @@
         </div>
       </fieldset>
 
+      <fieldset id="field-category">
+        <legend>Team category <span class="req">*</span></legend>
+        <div class="field-row single">
+          <div>
+            <label for="teamCategory">Men's or Veteran <span class="req">*</span></label>
+            <select id="teamCategory" name="category" required>
+              <option value="">Select Men's or Veteran</option>
+              <option value="mens">Men's</option>
+              <option value="veteran">Veteran</option>
+            </select>
+            <span class="hint">Choose the competition this squad is entering. Organisers use this to group and filter teams.</span>
+            <span class="error-text">Please select Men's or Veteran.</span>
+          </div>
+        </div>
+      </fieldset>
+
       <fieldset id="field-squad">
         <legend>Squad list <span class="hint">— 8 to 12 players, max 3 Premier Players</span></legend>
         <div class="squad-table-wrap">
@@ -206,22 +222,6 @@
         </div>
         <p class="form-note" id="mplNote">0 of 3 Premier Players selected</p>
         <div class="players-error" id="players-error">You need at least 8 players. Premier Players are optional (maximum 3).</div>
-      </fieldset>
-
-      <fieldset id="field-category">
-        <legend>Team category <span class="req">*</span></legend>
-        <div class="field-row single">
-          <div>
-            <label for="teamCategory">Men's or Veteran <span class="req">*</span></label>
-            <select id="teamCategory" name="category" required>
-              <option value="">Select Men's or Veteran</option>
-              <option value="mens">Men's</option>
-              <option value="veteran">Veteran</option>
-            </select>
-            <span class="hint">Choose the competition this squad is entering. Organisers use this to group and filter teams.</span>
-            <span class="error-text">Please select Men's or Veteran.</span>
-          </div>
-        </div>
       </fieldset>
 
       <fieldset>
