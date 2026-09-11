@@ -134,6 +134,9 @@ class RegisterView(View):
             "home_city": payload.get("home_city") or payload.get("homeCity") or "",
             "phone": payload.get("phone") or payload.get("contactPhone") or "",
             "gmail": payload.get("gmail") or "",
+            "category": (
+                payload.get("category") or payload.get("teamCategory") or ""
+            ).strip(),
             "squad_size": payload.get("squad_size") or "",
             "experience": payload.get("experience") or "",
             "notes": payload.get("notes") or "",
@@ -271,6 +274,9 @@ class TeamUpdateView(View):
             payload.get("manager_name") or payload.get("captainName") or ""
         ).strip()
         phone = (payload.get("phone") or payload.get("contactPhone") or "").strip()
+        category = (
+            payload.get("category") or payload.get("teamCategory") or team.category or ""
+        ).strip()
 
         try:
             players = normalize_players(payload.get("players") or [])
@@ -279,6 +285,19 @@ class TeamUpdateView(View):
             message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
             return JsonResponse(
                 {"ok": False, "status": "error", "message": message}, status=400
+            )
+
+        valid_categories = {
+            choice for choice, _label in TeamRegistration.CATEGORY_CHOICES
+        }
+        if category not in valid_categories:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "status": "error",
+                    "message": "Please select Men's or Veteran.",
+                },
+                status=400,
             )
 
         if not team_name or not captain or not phone:
@@ -294,6 +313,7 @@ class TeamUpdateView(View):
         team.team_name = team_name
         team.manager_name = captain
         team.phone = phone
+        team.category = category
         team.players = players
         team.squad_size = TeamRegistration.squad_size_for_count(len(players))
         team.save(
@@ -301,6 +321,7 @@ class TeamUpdateView(View):
                 "team_name",
                 "manager_name",
                 "phone",
+                "category",
                 "players",
                 "squad_size",
             ]

@@ -42,6 +42,7 @@ VALID_PAYLOAD = {
     "agree": True,
     "agree_terms": True,
     "pin": "4821",
+    "category": "mens",
     "players": SAMPLE_PLAYERS,
     "teamLogo": SAMPLE_LOGO,
     "receipt": SAMPLE_LOGO,
@@ -83,6 +84,10 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "$349")
         self.assertContains(response, 'id="agreeTermsCheck"')
         self.assertContains(response, "Bank statement screenshot")
+        self.assertContains(response, 'id="teamCategory"')
+        self.assertContains(response, "Select Men's or Veteran")
+        self.assertContains(response, 'value="veteran"')
+        self.assertContains(response, 'value="mens"')
 
     def test_logo_upload_is_saved_and_served(self):
         response = self.post_registration()
@@ -125,6 +130,8 @@ class RegistrationEndpointTests(TestCase):
         self.assertTrue(team.check_pin("4821"))
         self.assertFalse(team.check_pin("0000"))
         self.assertEqual(team.squad_size, "7-9")
+        self.assertEqual(team.category, TeamRegistration.CATEGORY_MENS)
+        self.assertEqual(team.get_category_display(), "Men's")
         self.assertTrue(team.payment_token)
         self.assertIn("paymentUrl", response.json())
         self.assertTrue(team.has_payment_receipt)
@@ -176,6 +183,8 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(len(body["teams"]), 1)
         team = body["teams"][0]
         self.assertEqual(team["teamName"], "Test Tigers")
+        self.assertEqual(team["category"], "mens")
+        self.assertEqual(team["categoryLabel"], "Men's")
         self.assertNotIn("gmail", team)
         self.assertNotIn("pin", team)
         self.assertNotIn("pin_hash", team)
@@ -215,6 +224,7 @@ class RegistrationEndpointTests(TestCase):
                     "teamName": "Updated Tigers",
                     "captainName": "Sita Gurung",
                     "contactPhone": "0400 111 111",
+                    "category": "veteran",
                     "players": new_players,
                 }
             ),
@@ -223,6 +233,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(updated.status_code, 200)
         team.refresh_from_db()
         self.assertEqual(team.team_name, "Updated Tigers")
+        self.assertEqual(team.category, "veteran")
         self.assertEqual(len(team.players), 8)
 
     def test_pin_protected_delete(self):
@@ -390,6 +401,38 @@ class RegistrationEndpointTests(TestCase):
         self.assertTrue(bool(team.pin_hash))
         self.assertFalse(team.check_pin("not-a-pin"))
 
+    def test_missing_category_is_rejected(self):
+        response = self.post_registration(category="")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Men's or Veteran", response.json()["message"])
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_invalid_category_is_rejected(self):
+        response = self.post_registration(category="mixed")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_veteran_category_is_saved_and_shown(self):
+        response = self.post_registration(category="veteran", team_name="Veteran FC")
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(team.category, TeamRegistration.CATEGORY_VETERAN)
+        self.assertEqual(team.get_category_display(), "Veteran")
+        self.assertEqual(response.json()["team"]["category"], "veteran")
+        self.assertEqual(response.json()["team"]["categoryLabel"], "Veteran")
+
+    def test_camel_case_category_payload_is_accepted(self):
+        payload = {**VALID_PAYLOAD}
+        del payload["category"]
+        payload["teamCategory"] = "veteran"
+        response = self.client.post(
+            reverse("registration:register"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(TeamRegistration.objects.get().category, "veteran")
+
     def test_agreement_is_required(self):
         response = self.post_registration(agree=False)
         self.assertEqual(response.status_code, 400)
@@ -456,6 +499,9 @@ class RegistrationEndpointTests(TestCase):
             self.assertNotIn("Player 1 (0400000001) <player1@gmail.com>", html)
         self.assertIn("screenshot is attached", org_html)
         self.assertNotIn("screenshot is attached", team_html)
+        self.assertIn("Team Category", team_html)
+        self.assertIn("Men&#x27;s", team_html)
+        self.assertIn("Team Category", org_html)
 
     @override_settings(
         REGISTRATION_EMAIL_ASYNC=True,
@@ -572,6 +618,18 @@ class AdminTests(TestCase):
             home_city="Palmerston",
             phone="0411 111 111",
             gmail="adminvisible@gmail.com",
+            category=TeamRegistration.CATEGORY_MENS,
+            squad_size="7-9",
+            experience="N/A",
+            notes="N/A",
+        )
+        cls.veteran = TeamRegistration.objects.create(
+            team_name="Veteran Wanderers",
+            manager_name="Bikram Rai",
+            home_city="Darwin",
+            phone="0411 222 222",
+            gmail="veteranwanderers@gmail.com",
+            category=TeamRegistration.CATEGORY_VETERAN,
             squad_size="7-9",
             experience="N/A",
             notes="N/A",
@@ -586,12 +644,33 @@ class AdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Admin Visible FC")
         self.assertContains(response, "adminvisible@gmail.com")
+        self.assertContains(response, "Veteran Wanderers")
+        self.assertContains(response, "Team category")
 
     def test_changelist_shows_summary_counts(self):
         response = self.client.get("/admin/registration/teamregistration/")
 
-        self.assertEqual(response.context["summary"]["total"], 1)
+        self.assertEqual(response.context["summary"]["total"], 2)
+        self.assertEqual(response.context["summary"]["mens"], 1)
+        self.assertEqual(response.context["summary"]["veteran"], 1)
         self.assertContains(response, "Teams registered")
+        self.assertContains(response, "Men's teams")
+        self.assertContains(response, "Veteran teams")
+
+    def test_admin_can_filter_by_category(self):
+        mens = self.client.get(
+            "/admin/registration/teamregistration/?category__exact=mens"
+        )
+        self.assertEqual(mens.status_code, 200)
+        self.assertContains(mens, "Admin Visible FC")
+        self.assertNotContains(mens, "Veteran Wanderers")
+
+        veteran = self.client.get(
+            "/admin/registration/teamregistration/?category__exact=veteran"
+        )
+        self.assertEqual(veteran.status_code, 200)
+        self.assertContains(veteran, "Veteran Wanderers")
+        self.assertNotContains(veteran, "Admin Visible FC")
 
     def test_csv_export_action(self):
         response = self.client.post(
@@ -601,7 +680,10 @@ class AdminTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/csv")
-        self.assertIn("Admin Visible FC", response.content.decode())
+        body = response.content.decode()
+        self.assertIn("Admin Visible FC", body)
+        self.assertIn("Team category", body)
+        self.assertIn("Men's", body)
 
 
 class PaymentTokenMigrationTests(TransactionTestCase):

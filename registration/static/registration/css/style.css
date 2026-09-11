@@ -915,6 +915,7 @@ footer {
 .err .error-text { display: block; }
 .err input,
 .err input[type="file"],
+.err select,
 .name-input.is-invalid {
   border-color: var(--danger) !important;
   background: #fff5f4;
@@ -925,7 +926,8 @@ footer {
 }
 #field-agree.err,
 #field-terms.err,
-#field-squad.err {
+#field-squad.err,
+#field-category.err {
   border-radius: 12px;
   box-shadow: inset 0 0 0 2px rgba(180, 35, 24, 0.35);
   padding: 12px;

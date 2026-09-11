@@ -421,6 +421,7 @@
       "field-agree",
       "field-terms",
       "field-squad",
+      "field-category",
       "field-receipt",
     ].forEach(function (id) {
       var el = document.getElementById(id);
@@ -518,6 +519,7 @@
     var captainName = readOptionalField("captainName");
     var contactPhone = readOptionalField("contactPhone");
     var gmail = readOptionalField("gmail");
+    var category = readOptionalField("teamCategory");
     var players = collectPlayers(squadBody);
 
     if (!teamName) {
@@ -547,6 +549,10 @@
     } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmail)) {
       setFieldError("field-gmail");
       missing.push("Team Gmail must end with @gmail.com");
+    }
+    if (category !== "mens" && category !== "veteran") {
+      setFieldError("field-category");
+      missing.push("Team category (Men's or Veteran)");
     }
 
     var logoInput = document.getElementById("teamLogo");
@@ -697,6 +703,7 @@
         captainName: captainName,
         contactPhone: normalizedPhone || contactPhone,
         gmail: gmail,
+        category: category,
         players: players,
       },
     };
@@ -826,6 +833,7 @@
         captainName: values.captainName,
         contactPhone: values.contactPhone,
         gmail: values.gmail,
+        category: values.category,
         players: values.players,
         teamLogo: teamLogo,
         receipt: paymentReceipt,
@@ -907,6 +915,7 @@
   wireRequiredInput("teamName", "field-teamname");
   wireRequiredInput("captainName", "field-captain");
   wireRequiredInput("gmail", "field-gmail");
+  wireRequiredInput("teamCategory", "field-category");
   wirePhoneInput(document.getElementById("contactPhone"), "field-contact");
 
   var receiptInputLive = document.getElementById("receiptFile");

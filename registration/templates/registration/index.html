@@ -35,6 +35,7 @@
 
     <div class="hero-chips" aria-label="Tournament highlights">
       <span class="chip">Format: 7-a-side</span>
+      <span class="chip">Men's &amp; Veteran</span>
       <span class="chip">Matchday squad: 8 to 12</span>
       <span class="chip">Premier Players: max 3</span>
     </div>
@@ -205,6 +206,22 @@
         </div>
         <p class="form-note" id="mplNote">0 of 3 Premier Players selected</p>
         <div class="players-error" id="players-error">You need at least 8 players. Premier Players are optional (maximum 3).</div>
+      </fieldset>
+
+      <fieldset id="field-category">
+        <legend>Team category <span class="req">*</span></legend>
+        <div class="field-row single">
+          <div>
+            <label for="teamCategory">Men's or Veteran <span class="req">*</span></label>
+            <select id="teamCategory" name="category" required>
+              <option value="">Select Men's or Veteran</option>
+              <option value="mens">Men's</option>
+              <option value="veteran">Veteran</option>
+            </select>
+            <span class="hint">Choose the competition this squad is entering. Organisers use this to group and filter teams.</span>
+            <span class="error-text">Please select Men's or Veteran.</span>
+          </div>
+        </div>
       </fieldset>
 
       <fieldset>
@@ -586,6 +603,6 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=bank1"></script>
+<script src="{% static 'registration/js/script.js' %}?v=category1"></script>
 </body>
 </html>

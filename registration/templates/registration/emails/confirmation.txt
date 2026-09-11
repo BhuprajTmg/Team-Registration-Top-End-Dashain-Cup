@@ -4,6 +4,7 @@ Thanks for registering "{{ registration.team_name }}" for the {{ registration.to
 
 Here's what we received:
   Team Name: {{ registration.team_name }}
+  Team Category: {{ category_display }}
   Captain: {{ registration.manager_name }}
   Phone: {{ registration.phone }}
   Squad Size: {{ squad_size_display }}
