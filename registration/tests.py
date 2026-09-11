@@ -7,7 +7,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
-from django.test import TestCase, override_settings
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
 from dashain_cup.settings import env_bool, env_int, env_str
@@ -523,3 +525,40 @@ class AdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/csv")
         self.assertIn("Admin Visible FC", response.content.decode())
+
+
+class PaymentTokenMigrationTests(TransactionTestCase):
+    """Existing teams must each get a unique payment_token when 0004 is applied."""
+
+    def test_existing_teams_get_unique_payment_tokens(self):
+        executor = MigrationExecutor(connection)
+        latest = executor.loader.graph.leaf_nodes()
+        try:
+            executor.migrate([("registration", "0003_team_logo")])
+            old_apps = executor.loader.project_state(
+                [("registration", "0003_team_logo")]
+            ).apps
+            Team = old_apps.get_model("registration", "TeamRegistration")
+            for index in range(3):
+                Team.objects.create(
+                    team_name=f"Existing FC {index}",
+                    manager_name=f"Captain {index}",
+                    phone=f"040000000{index}",
+                    gmail=f"existing{index}@gmail.com",
+                    players=[],
+                )
+
+            executor.loader.build_graph()
+            executor.migrate([("registration", "0004_payment_receipt")])
+
+            new_apps = executor.loader.project_state(
+                [("registration", "0004_payment_receipt")]
+            ).apps
+            TeamNew = new_apps.get_model("registration", "TeamRegistration")
+            tokens = list(TeamNew.objects.values_list("payment_token", flat=True))
+            self.assertEqual(len(tokens), 3)
+            self.assertEqual(len(set(tokens)), 3)
+            self.assertTrue(all(tokens))
+        finally:
+            executor.loader.build_graph()
+            executor.migrate(latest)
