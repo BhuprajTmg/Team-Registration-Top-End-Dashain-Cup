@@ -72,8 +72,9 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "8 to 12")
         self.assertContains(response, "Player Gmail")
         self.assertContains(response, "Player phone")
-        self.assertContains(response, "PayID")
-        self.assertContains(response, "0000000000")
+        self.assertContains(response, "Payment details")
+        self.assertContains(response, "015901")
+        self.assertContains(response, "812044156")
         self.assertContains(response, 'id="pay"')
         self.assertContains(response, 'id="receiptFile"')
         self.assertContains(response, 'placeholder="04********"')
@@ -142,8 +143,9 @@ class RegistrationEndpointTests(TestCase):
         pay_url = created.json()["paymentUrl"]
         page = self.client.get(pay_url)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "0000000000")
-        self.assertContains(page, "$349")
+        self.assertContains(page, "015901")
+        self.assertContains(page, "812044156")
+        self.assertContains(page, "Gurkhali FC")
 
         upload = self.client.post(
             reverse("registration:pay_submit", args=[team.payment_token]),

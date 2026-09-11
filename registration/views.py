@@ -43,9 +43,9 @@ def _payment_page_context(team=None):
         "tournament_year": TOURNAMENT_YEAR,
         "division": DIVISION_NAME,
         "entry_fee": settings.ENTRY_FEE_AUD,
-        "payid_name": settings.PAYID_NAME,
-        "payid_value": settings.PAYID_VALUE,
-        "payid_type": settings.PAYID_TYPE,
+        "bank_account_name": settings.BANK_ACCOUNT_NAME,
+        "bank_bsb": settings.BANK_BSB,
+        "bank_account_number": settings.BANK_ACCOUNT_NUMBER,
         "club_email": CLUB_DISPLAY_EMAIL,
         "team": team,
     }
