@@ -8,6 +8,14 @@
         <span class="reg-summary-label">Teams registered</span>
       </div>
       <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.mens|default:0 }}</span>
+        <span class="reg-summary-label">Men's teams</span>
+      </div>
+      <div class="reg-summary-card">
+        <span class="reg-summary-value">{{ summary.veteran|default:0 }}</span>
+        <span class="reg-summary-label">Veteran teams</span>
+      </div>
+      <div class="reg-summary-card">
         <span class="reg-summary-value">{{ summary.today }}</span>
         <span class="reg-summary-label">Registered today</span>
       </div>

@@ -18,6 +18,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     list_display = (
         "logo_thumb",
         "team_name",
+        "category",
         "manager_name",
         "phone_link",
         "gmail_link",
@@ -29,6 +30,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     )
     list_display_links = ("team_name",)
     list_filter = (
+        "category",
         "tournament",
         "division",
         "squad_size",
@@ -58,7 +60,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
-        ("Tournament", {"fields": ("tournament", "division")}),
+        ("Tournament", {"fields": ("tournament", "division", "category")}),
         (
             "Team",
             {
@@ -135,7 +137,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     @admin.display(description="Team logo")
     def logo_preview(self, obj):
         if not obj.has_logo:
-            return format_html("<em>No logo uploaded</em>")
+            return format_html("<em>{}</em>", "No logo uploaded")
         filename = obj.logo_filename or "team-logo"
         return format_html(
             '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">'
@@ -211,6 +213,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context["summary"] = {
             "total": queryset.count(),
+            "mens": queryset.filter(category=TeamRegistration.CATEGORY_MENS).count(),
+            "veteran": queryset.filter(category=TeamRegistration.CATEGORY_VETERAN).count(),
             "today": queryset.filter(created_at__date=today).count(),
             "emails_sent": queryset.filter(confirmation_email_sent=True).count(),
             "emails_pending": queryset.filter(confirmation_email_sent=False).count(),
@@ -229,6 +233,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                 "Registered at",
                 "Tournament",
                 "Division",
+                "Team category",
                 "Team name",
                 "Manager / Coach",
                 "Home city / suburb",
@@ -264,6 +269,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
                     timezone.localtime(team.created_at).strftime("%Y-%m-%d %H:%M"),
                     team.tournament,
                     team.division,
+                    team.get_category_display(),
                     team.team_name,
                     team.manager_name,
                     team.home_city,

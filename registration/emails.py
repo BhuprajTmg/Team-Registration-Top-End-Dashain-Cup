@@ -50,6 +50,7 @@ def _display_context(registration):
         "squad_size_display": squad_size_display,
         "experience_display": registration.experience or "N/A",
         "notes_display": registration.notes or "N/A",
+        "category_display": registration.get_category_display(),
         "players": players,
         "players_display": players_display,
         "players_display_text": ", ".join(players_display) if players_display else "Not listed",

@@ -21,9 +21,24 @@ class TeamRegistration(models.Model):
         ("16+", "16+ players"),
     ]
 
+    CATEGORY_MENS = "mens"
+    CATEGORY_VETERAN = "veteran"
+    CATEGORY_CHOICES = [
+        (CATEGORY_MENS, "Men's"),
+        (CATEGORY_VETERAN, "Veteran"),
+    ]
+
     tournament = models.CharField(max_length=120, default="2nd Grace Dashain Cup 2026")
     division = models.CharField(
         max_length=160, default="Open 7A-side football competition"
+    )
+    category = models.CharField(
+        "Team category",
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default=CATEGORY_MENS,
+        db_index=True,
+        help_text="Men's or Veteran — used to group and filter teams.",
     )
 
     team_name = models.CharField(max_length=120)
@@ -71,7 +86,7 @@ class TeamRegistration(models.Model):
         verbose_name_plural = "Team registrations"
 
     def __str__(self):
-        return f"{self.team_name} ({self.tournament})"
+        return f"{self.team_name} — {self.get_category_display()} ({self.tournament})"
 
     def set_pin(self, pin: str) -> None:
         self.pin_hash = make_password(str(pin).strip())
@@ -116,6 +131,8 @@ class TeamRegistration(models.Model):
         return {
             "id": str(self.pk),
             "teamName": self.team_name,
+            "category": self.category,
+            "categoryLabel": self.get_category_display(),
             "captainName": self.manager_name,
             "contactPhone": self.phone,
             "players": self.players or [],

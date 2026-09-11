@@ -111,6 +111,7 @@ class TeamRegistrationForm(forms.ModelForm):
             "home_city",
             "phone",
             "gmail",
+            "category",
             "squad_size",
             "experience",
             "notes",
@@ -122,6 +123,14 @@ class TeamRegistrationForm(forms.ModelForm):
         self.fields["squad_size"].required = False
         self.fields["experience"].required = False
         self.fields["notes"].required = False
+        self.fields["category"].required = True
+        self.fields["category"].choices = [
+            ("", "Select Men's or Veteran"),
+            *TeamRegistration.CATEGORY_CHOICES,
+        ]
+        self.fields["category"].error_messages["required"] = (
+            "Please select Men's or Veteran."
+        )
         self.fields["team_name"].error_messages["required"] = "Enter your team name."
         self.fields["manager_name"].error_messages["required"] = (
             "Enter the contact person's name."
@@ -151,6 +160,13 @@ class TeamRegistrationForm(forms.ModelForm):
 
     def clean_phone(self):
         return normalize_australian_phone(self.cleaned_data["phone"])
+
+    def clean_category(self):
+        category = (self.cleaned_data.get("category") or "").strip()
+        valid = {choice for choice, _label in TeamRegistration.CATEGORY_CHOICES}
+        if category not in valid:
+            raise forms.ValidationError("Please select Men's or Veteran.")
+        return category
 
     def clean_pin(self):
         import random

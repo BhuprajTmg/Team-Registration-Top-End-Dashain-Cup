@@ -1,6 +1,7 @@
 A new team just registered for {{ registration.tournament }}.
 
   Team Name: {{ registration.team_name }}
+  Team Category: {{ category_display }}
   Captain: {{ registration.manager_name }}
   Home City / Suburb: {{ registration.home_city }}
   Phone: {{ registration.phone }}
