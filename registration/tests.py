@@ -65,6 +65,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "Premier Players")
         self.assertContains(response, "8 to 12")
         self.assertContains(response, "Player Gmail")
+        self.assertContains(response, "Shirt no.")
         self.assertContains(response, "PayID")
 
     def test_logo_upload_is_saved_and_served(self):

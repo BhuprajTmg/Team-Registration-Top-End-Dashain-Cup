@@ -266,7 +266,7 @@
       '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefill.name ? escapeHtml(prefill.name) : "") +
       '"></td>' +
-      '<td class="jersey-cell"><input type="text" class="jersey-input" inputmode="numeric" maxlength="2" placeholder="No." autocomplete="off" required value="' +
+      '<td class="jersey-cell"><input type="text" class="jersey-input" inputmode="numeric" maxlength="2" placeholder="1–99" autocomplete="off" required value="' +
       (prefill.jersey ? escapeHtml(prefill.jersey) : "") +
       '"></td>' +
       '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
