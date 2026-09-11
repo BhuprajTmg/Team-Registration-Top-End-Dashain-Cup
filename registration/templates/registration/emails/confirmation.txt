@@ -9,8 +9,12 @@ Here's what we received:
   Squad Size: {{ squad_size_display }}
   Players: {{ players_display_text }}
 
+{% if has_payment_receipt %}
+We have your ${{ entry_fee }} PayID screenshot on file (PayID {{ payid_value }}, {{ payid_name }}).
+{% else %}
 Pay the ${{ entry_fee }} entry fee to PayID {{ payid_value }} ({{ payid_name }}), then upload your bank screenshot:
 {{ payment_url }}
+{% endif %}
 
 We'll be in touch with fixtures and further details closer to the tournament.
 

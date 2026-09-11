@@ -29,9 +29,14 @@
               </table>
 
               <p style="font-size:15px;line-height:1.6;">
+                {% if has_payment_receipt %}
+                We have your <strong>${{ entry_fee }}</strong> PayID screenshot on file
+                (PayID <strong>{{ payid_value }}</strong>, {{ payid_name }}).
+                {% else %}
                 Pay the <strong>${{ entry_fee }}</strong> entry fee to PayID <strong>{{ payid_value }}</strong>
                 ({{ payid_name }}), then upload your bank screenshot here:
                 <a href="{{ payment_url }}">{{ payment_url }}</a>
+                {% endif %}
               </p>
               <p style="font-size:15px;line-height:1.6;">We'll be in touch with fixtures and further details closer to the tournament.</p>
               <p style="font-size:14px;line-height:1.6;color:#6b6250;margin-top:24px;">Himalayan Hearts, Top End Spirits.<br/><strong>{{ club_name }}</strong></p>

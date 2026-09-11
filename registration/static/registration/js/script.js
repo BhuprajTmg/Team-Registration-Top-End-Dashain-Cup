@@ -13,6 +13,8 @@
   var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
   var allTeams = [];
   var cachedLogoDataUrl = null;
+  var cachedReceiptDataUrl = null;
+  var PHONE_PREFIX = "0447";
 
   var form = document.getElementById("team-form");
   if (!form) return;
@@ -294,8 +296,8 @@
       '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefill.name ? escapeHtml(prefill.name) : "") +
       '"></td>' +
-      '<td class="player-phone-cell"><input type="tel" class="player-phone-input" inputmode="numeric" maxlength="16" placeholder="0400 123 456" autocomplete="off" required value="' +
-      (prefill.phone ? escapeHtml(prefill.phone) : "") +
+      '<td class="player-phone-cell"><input type="tel" class="player-phone-input" inputmode="numeric" maxlength="13" placeholder="0447 123 456" autocomplete="off" required value="' +
+      escapeHtml(prefill.phone ? prefill.phone : PHONE_PREFIX) +
       '"></td>' +
       '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
@@ -306,24 +308,7 @@
       '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove player">&times;</button></td>';
     squadBody.appendChild(tr);
     wireMplCheckbox(tr.querySelector(".mpl-input"));
-    var phoneInput = tr.querySelector(".player-phone-input");
-    phoneInput.addEventListener("keydown", function (event) {
-      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
-        return;
-      }
-      if (!/[0-9+() \-]/.test(event.key)) {
-        event.preventDefault();
-      }
-    });
-    phoneInput.addEventListener("input", function () {
-      var cleaned = sanitizePhoneInput(this.value);
-      if (cleaned !== this.value) this.value = cleaned;
-    });
-    phoneInput.addEventListener("paste", function (event) {
-      event.preventDefault();
-      var pasted = event.clipboardData ? event.clipboardData.getData("text") || "" : "";
-      this.value = sanitizePhoneInput(pasted);
-    });
+    wirePhoneInput(tr.querySelector(".player-phone-input"));
     tr.querySelector(".remove-player").addEventListener("click", function () {
       if (rowCount() <= MIN_PLAYERS) {
         playersError.textContent =
@@ -401,6 +386,7 @@
       "field-gmail",
       "field-agree",
       "field-squad",
+      "field-receipt",
     ].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.remove("err");
@@ -449,6 +435,57 @@
     return plus + cleaned.replace(/\+/g, "").replace(/[^\d()\s-]/g, "");
   }
 
+  function applyPhonePrefix(rawPhone) {
+    var digits = sanitizePhoneInput(rawPhone).replace(/\D/g, "");
+    if (digits.indexOf("61447") === 0) {
+      digits = digits.slice(5);
+    } else if (digits.indexOf(PHONE_PREFIX) === 0) {
+      digits = digits.slice(PHONE_PREFIX.length);
+    } else if (digits.indexOf("447") === 0) {
+      digits = digits.slice(3);
+    }
+    var rest = digits.slice(0, 6);
+    var value = PHONE_PREFIX;
+    if (rest) {
+      value += " " + rest.slice(0, 3);
+      if (rest.length > 3) value += " " + rest.slice(3);
+    }
+    return value;
+  }
+
+  function wirePhoneInput(input, fieldId) {
+    if (!input) return;
+    input.value = applyPhonePrefix(input.value || PHONE_PREFIX);
+    input.addEventListener("keydown", function (event) {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+        return;
+      }
+      if (!/[0-9+() \-]/.test(event.key)) {
+        event.preventDefault();
+      }
+    });
+    input.addEventListener("input", function () {
+      this.value = applyPhonePrefix(this.value);
+      if (fieldId && normalizeAustralianPhone(this.value)) {
+        var wrap = document.getElementById(fieldId);
+        if (wrap) wrap.classList.remove("err");
+      }
+    });
+    input.addEventListener("paste", function (event) {
+      event.preventDefault();
+      this.value = applyPhonePrefix(event.clipboardData ? event.clipboardData.getData("text") || "" : "");
+      this.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    if (fieldId) {
+      input.addEventListener("blur", function () {
+        var wrap = document.getElementById(fieldId);
+        if (!wrap) return;
+        this.value = applyPhonePrefix(this.value);
+        wrap.classList.toggle("err", !normalizeAustralianPhone(this.value));
+      });
+    }
+  }
+
   function normalizeAustralianPhone(rawPhone) {
     var compact = sanitizePhoneInput(rawPhone).replace(/[\s().-]/g, "");
     if (/^0[23478]\d{8}$/.test(compact)) return compact;
@@ -476,16 +513,19 @@
     }
     var normalizedPhone = normalizeAustralianPhone(contactPhone);
     var phoneError = document.getElementById("phone-error");
-    if (!contactPhone) {
+    if (!contactPhone || contactPhone.replace(/\D/g, "") === PHONE_PREFIX) {
       setFieldError("field-contact");
-      missing.push("Phone number");
+      if (phoneError) {
+        phoneError.textContent = "Add the rest of the 0447 phone number, for example 0447 123 456.";
+      }
+      missing.push("Phone number (0447 plus the remaining digits)");
     } else if (!normalizedPhone) {
       setFieldError("field-contact");
       if (phoneError) {
         phoneError.textContent =
-          "Enter a valid Australian phone number, for example 0400 123 456.";
+          "Enter a valid 0447 phone number, for example 0447 123 456.";
       }
-      missing.push("Valid Australian phone number");
+      missing.push("Valid 0447 phone number");
     }
     if (!gmail) {
       setFieldError("field-gmail");
@@ -521,6 +561,29 @@
     if (!agreeCheck || !agreeCheck.checked) {
       setFieldError("field-agree");
       missing.push("Confirmation / rules agreement");
+    }
+
+    var receiptInput = document.getElementById("receiptFile");
+    var receiptFile = receiptInput && receiptInput.files && receiptInput.files[0] ? receiptInput.files[0] : null;
+    var receiptError = document.getElementById("receipt-error");
+    if (!receiptFile && !cachedReceiptDataUrl) {
+      setFieldError("field-receipt");
+      if (receiptError) {
+        receiptError.textContent = "Upload a screenshot of your PayID bank transfer.";
+      }
+      missing.push("PayID payment screenshot");
+    } else if (receiptFile && !/^image\/(jpeg|jpg|png|webp|gif)$/i.test(receiptFile.type)) {
+      setFieldError("field-receipt");
+      if (receiptError) {
+        receiptError.textContent = "Screenshot must be a JPG, PNG, WEBP, or GIF image.";
+      }
+      missing.push("PayID screenshot (JPG, PNG, WEBP or GIF only)");
+    } else if (receiptFile && receiptFile.size > 2 * 1024 * 1024) {
+      setFieldError("field-receipt");
+      if (receiptError) {
+        receiptError.textContent = "Screenshot must be 2 MB or smaller.";
+      }
+      missing.push("PayID screenshot (max 2 MB)");
     }
 
     squadBody.querySelectorAll(".name-input, .player-phone-input, .player-gmail-input").forEach(function (input) {
@@ -575,7 +638,7 @@
       setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
-          "Every player needs a name, Australian phone number (numbers only), and Gmail. Phone numbers and Gmails cannot be repeated.";
+          "Every player needs a name, 0447 phone number (add the remaining digits), and Gmail. Phone numbers and Gmails cannot be repeated.";
         playersError.style.display = "block";
       }
       missing.push("Player name, phone number and Gmail for every row");
@@ -633,18 +696,19 @@
     };
   }
 
-  function readLogoAsDataUrl(file) {
+  function readImageAsDataUrl(file, label, maxBytes) {
     return new Promise(function (resolve, reject) {
       if (!file) {
         resolve(null);
         return;
       }
       if (!/^image\/(jpeg|jpg|png|webp|gif)$/i.test(file.type)) {
-        reject(new Error("Team logo must be a JPG, PNG, WEBP, or GIF image."));
+        reject(new Error(label + " must be a JPG, PNG, WEBP, or GIF image."));
         return;
       }
-      if (file.size > 1024 * 1024) {
-        reject(new Error("Team logo must be 1 MB or smaller."));
+      if (file.size > maxBytes) {
+        var maxMb = Math.max(1, Math.floor(maxBytes / (1024 * 1024)));
+        reject(new Error(label + " must be " + maxMb + " MB or smaller."));
         return;
       }
       var reader = new FileReader();
@@ -652,10 +716,18 @@
         resolve(reader.result);
       };
       reader.onerror = function () {
-        reject(new Error("Could not read the team logo file."));
+        reject(new Error("Could not read the " + label.toLowerCase() + " file."));
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  function readLogoAsDataUrl(file) {
+    return readImageAsDataUrl(file, "Team logo", 1024 * 1024);
+  }
+
+  function readReceiptAsDataUrl(file) {
+    return readImageAsDataUrl(file, "Payment screenshot", 2 * 1024 * 1024);
   }
 
   async function handleRegistrationSubmit(e) {
@@ -708,6 +780,36 @@
       return;
     }
 
+    var receiptInput = document.getElementById("receiptFile");
+    var paymentReceipt = cachedReceiptDataUrl;
+    try {
+      if (!paymentReceipt) {
+        paymentReceipt = await readReceiptAsDataUrl(
+          receiptInput && receiptInput.files && receiptInput.files[0] ? receiptInput.files[0] : null
+        );
+        cachedReceiptDataUrl = paymentReceipt;
+      }
+    } catch (receiptErr) {
+      setFieldError("field-receipt");
+      scrollToFirstError();
+      showResultPopup(
+        "error",
+        "Payment screenshot issue",
+        receiptErr.message || "Invalid payment screenshot."
+      );
+      return;
+    }
+    if (!paymentReceipt) {
+      setFieldError("field-receipt");
+      scrollToFirstError();
+      showResultPopup(
+        "error",
+        "Please complete the form",
+        "Upload a screenshot of your PayID bank transfer."
+      );
+      return;
+    }
+
     var values = validation.values;
     submitBtn.disabled = true;
     submitBtn.textContent = "Submitting…";
@@ -720,12 +822,21 @@
         gmail: values.gmail,
         players: values.players,
         teamLogo: teamLogo,
+        receipt: paymentReceipt,
         agree: true,
       });
 
       if (result._httpOk && result.ok !== false && result.status !== "error") {
         form.reset();
         cachedLogoDataUrl = null;
+        cachedReceiptDataUrl = null;
+        var receiptPreview = document.getElementById("receipt-preview");
+        if (receiptPreview) {
+          receiptPreview.removeAttribute("src");
+          receiptPreview.style.display = "none";
+        }
+        var contactPhone = document.getElementById("contactPhone");
+        if (contactPhone) contactPhone.value = PHONE_PREFIX;
         squadBody.innerHTML = "";
         for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
         updateMplAvailability();
@@ -738,19 +849,12 @@
         showResultPopup(
           "success",
           "Registration Successful!",
-          (result.message ||
+          result.message ||
             "Thanks, <strong>" +
               escapeHtml(values.teamName) +
-              "</strong>! Your squad is on the list.") +
-            "<br><br>Opening the PayID payment page so you can pay and upload your bank screenshot.",
-          result.paymentUrl || null
+              "</strong>! Your squad and PayID screenshot are on the list."
         );
         window.scrollTo({ top: 0, behavior: "smooth" });
-        if (result.paymentUrl) {
-          window.setTimeout(function () {
-            window.location.href = result.paymentUrl;
-          }, 900);
-        }
       } else {
         showResultPopup(
           "error",
@@ -796,38 +900,35 @@
   wireRequiredInput("teamName", "field-teamname");
   wireRequiredInput("captainName", "field-captain");
   wireRequiredInput("gmail", "field-gmail");
+  wirePhoneInput(document.getElementById("contactPhone"), "field-contact");
 
-  var phoneInputLive = document.getElementById("contactPhone");
-  if (phoneInputLive) {
-    phoneInputLive.addEventListener("keydown", function (event) {
-      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+  var receiptInputLive = document.getElementById("receiptFile");
+  var receiptPreview = document.getElementById("receipt-preview");
+  if (receiptInputLive) {
+    receiptInputLive.addEventListener("change", function () {
+      cachedReceiptDataUrl = null;
+      var file = receiptInputLive.files && receiptInputLive.files[0];
+      var wrap = document.getElementById("field-receipt");
+      if (!file) {
+        if (receiptPreview) receiptPreview.style.display = "none";
         return;
       }
-      if (!/[0-9+() \-]/.test(event.key)) {
-        event.preventDefault();
-      }
-    });
-    phoneInputLive.addEventListener("paste", function (event) {
-      event.preventDefault();
-      var pasted = event.clipboardData ? event.clipboardData.getData("text") || "" : "";
-      phoneInputLive.value = sanitizePhoneInput(pasted);
-      phoneInputLive.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    phoneInputLive.addEventListener("blur", function () {
-      var wrap = document.getElementById("field-contact");
-      if (!wrap) return;
-      phoneInputLive.value = sanitizePhoneInput(phoneInputLive.value);
-      wrap.classList.toggle("err", !normalizeAustralianPhone(phoneInputLive.value));
-    });
-    phoneInputLive.addEventListener("input", function () {
-      var wrap = document.getElementById("field-contact");
-      var cleaned = sanitizePhoneInput(phoneInputLive.value);
-      if (cleaned !== phoneInputLive.value) {
-        phoneInputLive.value = cleaned;
-      }
-      if (wrap && normalizeAustralianPhone(phoneInputLive.value)) {
-        wrap.classList.remove("err");
-      }
+      readReceiptAsDataUrl(file)
+        .then(function (url) {
+          cachedReceiptDataUrl = url;
+          if (receiptPreview) {
+            receiptPreview.src = url;
+            receiptPreview.style.display = "block";
+          }
+          if (wrap) wrap.classList.remove("err");
+        })
+        .catch(function (err) {
+          cachedReceiptDataUrl = null;
+          if (receiptPreview) receiptPreview.style.display = "none";
+          if (wrap) wrap.classList.add("err");
+          var receiptError = document.getElementById("receipt-error");
+          if (receiptError) receiptError.textContent = err.message;
+        });
     });
   }
 
