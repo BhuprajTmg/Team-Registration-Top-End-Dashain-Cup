@@ -232,7 +232,7 @@ CLUB_NAME = env_str("CLUB_NAME", "Gurkhali FC")
 
 # PayID entry-fee details shown on the public payment page. No payment API —
 # teams transfer the fee and upload a bank-statement screenshot.
-ENTRY_FEE_AUD = env_int("ENTRY_FEE_AUD", 370)
+ENTRY_FEE_AUD = env_int("ENTRY_FEE_AUD", 349)
 PAYID_NAME = env_str("PAYID_NAME", "Gurkhali FC")
 PAYID_VALUE = env_str("PAYID_VALUE", "0000000000")
 PAYID_TYPE = env_str("PAYID_TYPE", "Phone")

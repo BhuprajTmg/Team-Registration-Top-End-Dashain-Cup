@@ -94,6 +94,12 @@ class TeamRegistrationForm(forms.ModelForm):
             "required": "Please confirm the details are accurate and accept the tournament rules."
         },
     )
+    agree_terms = forms.BooleanField(
+        required=True,
+        error_messages={
+            "required": "Please confirm you agree to the tournament Terms and Conditions."
+        },
+    )
     pin = forms.CharField(required=False, max_length=4)
     players = forms.Field(required=True)
 

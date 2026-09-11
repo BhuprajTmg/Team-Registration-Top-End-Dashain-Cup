@@ -21,7 +21,7 @@ class TeamRegistration(models.Model):
         ("16+", "16+ players"),
     ]
 
-    tournament = models.CharField(max_length=120, default="Dashain Cup 2026")
+    tournament = models.CharField(max_length=120, default="2nd Grace Dashain Cup 2026")
     division = models.CharField(
         max_length=160, default="Open 7A-side football competition"
     )

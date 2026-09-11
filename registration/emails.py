@@ -58,7 +58,7 @@ def _display_context(registration):
             if getattr(settings, "PUBLIC_SITE_URL", "")
             else registration.payment_path()
         ),
-        "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 370),
+        "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 349),
         "payid_value": getattr(settings, "PAYID_VALUE", "0000000000"),
         "payid_name": getattr(settings, "PAYID_NAME", "Gurkhali FC"),
         "has_payment_receipt": bool(getattr(registration, "has_payment_receipt", False)),

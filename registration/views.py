@@ -19,10 +19,11 @@ from .forms import TeamRegistrationForm, normalize_australian_phone, normalize_p
 from .logos import parse_logo_payload, parse_receipt_payload
 from .models import TeamRegistration
 
-TOURNAMENT_TITLE = "Dashain Cup"
+TOURNAMENT_TITLE = "2nd Grace Dashain Cup"
 TOURNAMENT_YEAR = "2026"
 TOURNAMENT_NAME = f"{TOURNAMENT_TITLE} {TOURNAMENT_YEAR}"
 DIVISION_NAME = "Open 7A-side football competition"
+CLUB_DISPLAY_EMAIL = "gurkhalifc.official@gmail.com"
 
 
 def _parse_json(request):
@@ -45,6 +46,7 @@ def _payment_page_context(team=None):
         "payid_name": settings.PAYID_NAME,
         "payid_value": settings.PAYID_VALUE,
         "payid_type": settings.PAYID_TYPE,
+        "club_email": CLUB_DISPLAY_EMAIL,
         "team": team,
     }
 
@@ -136,6 +138,8 @@ class RegisterView(View):
             "experience": payload.get("experience") or "",
             "notes": payload.get("notes") or "",
             "agree": payload.get("agree"),
+            "agree_terms": payload.get("agree_terms")
+            or payload.get("agreeTerms"),
             "pin": payload.get("pin") or "",
             "players": payload.get("players") or [],
         }
