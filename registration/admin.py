@@ -137,7 +137,7 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
     @admin.display(description="Team logo")
     def logo_preview(self, obj):
         if not obj.has_logo:
-            return format_html("<em>No logo uploaded</em>")
+            return format_html("<em>{}</em>", "No logo uploaded")
         filename = obj.logo_filename or "team-logo"
         return format_html(
             '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">'

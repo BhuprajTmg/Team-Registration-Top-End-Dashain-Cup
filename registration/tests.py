@@ -672,6 +672,14 @@ class AdminTests(TestCase):
         self.assertContains(veteran, "Veteran Wanderers")
         self.assertNotContains(veteran, "Admin Visible FC")
 
+    def test_admin_change_page_shows_category(self):
+        response = self.client.get(
+            f"/admin/registration/teamregistration/{self.veteran.pk}/change/"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Team category")
+        self.assertContains(response, "Veteran")
+
     def test_csv_export_action(self):
         response = self.client.post(
             "/admin/registration/teamregistration/",
