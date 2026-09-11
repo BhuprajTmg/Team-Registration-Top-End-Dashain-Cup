@@ -295,16 +295,16 @@
       '<td class="row-num">' +
       idx +
       "</td>" +
-      '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
+      '<td data-label="Player name"><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
       (prefill.name ? escapeHtml(prefill.name) : "") +
       '"></td>' +
-      '<td class="player-phone-cell"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
+      '<td class="player-phone-cell" data-label="Player phone"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
       (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
-      '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
+      '<td data-label="Player Gmail"><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
       '"></td>' +
-      '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"' +
+      '<td class="mpl-cell" data-label="Premier Player"><input type="checkbox" class="mpl-input" value="Yes"' +
       (prefill.mpl ? " checked" : "") +
       "></td>" +
       '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove player">&times;</button></td>';

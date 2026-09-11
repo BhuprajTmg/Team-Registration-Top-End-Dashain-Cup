@@ -20,7 +20,15 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
 body {
   margin: 0;
   background: var(--cream);
@@ -37,8 +45,12 @@ h1, h2, h3 {
 }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
-.wrap { max-width: var(--max); margin: 0 auto; padding: 0 28px; }
-@media (max-width: 600px) { .wrap { padding: 0 18px; } }
+.wrap {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding-left: max(28px, env(safe-area-inset-left, 0px));
+  padding-right: max(28px, env(safe-area-inset-right, 0px));
+}
 
 .skip {
   position: absolute;
@@ -122,13 +134,14 @@ img { max-width: 100%; display: block; }
   font-family: var(--font-hero);
   font-weight: 700;
   font-style: normal;
-  font-size: clamp(2.2rem, 6.4vw, 3.9rem);
-  line-height: 0.95;
+  font-size: clamp(1.55rem, 8.5vw, 3.9rem);
+  line-height: 1.05;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: #fff;
-  max-width: none;
+  max-width: 100%;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 .hero-title span { color: var(--gold); }
 .hero-sub {
@@ -148,12 +161,16 @@ img { max-width: 100%; display: block; }
 .chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 8px 16px;
   border: 1px solid rgba(214, 164, 41, 0.55);
   border-radius: 999px;
   font-size: 0.88rem;
   color: rgba(247, 241, 230, 0.92);
   background: rgba(255, 255, 255, 0.03);
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
 }
 .hero-cta {
   margin-top: 26px;
@@ -163,7 +180,7 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
 }
 .btn-payid {
-  min-width: 180px;
+  min-width: min(180px, 100%);
   background: transparent;
   color: var(--gold);
   border: 2px solid var(--gold);
@@ -173,7 +190,7 @@ img { max-width: 100%; display: block; }
   background: color-mix(in srgb, var(--gold) 18%, transparent);
 }
 .btn-register {
-  min-width: 220px;
+  min-width: min(220px, 100%);
   font-size: 1.05rem;
   padding: 15px 32px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
@@ -235,6 +252,7 @@ img { max-width: 100%; display: block; }
   font-family: var(--font-body);
   border-radius: 999px;
   transition: background 0.15s ease, transform 0.15s ease;
+  touch-action: manipulation;
 }
 .btn:hover { background: var(--gold-soft); }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -311,7 +329,7 @@ img { max-width: 100%; display: block; }
   }
   .fact:nth-child(3) { border-left: none; padding-left: 0; }
 }
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .facts-grid { grid-template-columns: 1fr; }
   .fact { border-left: none; padding: 0; border-top: 1px solid var(--line-dark); padding-top: 16px; }
   .fact:first-child { border-top: none; padding-top: 0; }
@@ -509,12 +527,16 @@ input.is-invalid {
 }
 .squad-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
 }
 .squad-table input[type="text"],
 .squad-table input[type="email"],
 .squad-table input[type="tel"] {
   padding: 10px 12px;
-  font-size: 0.95rem;
+  font-size: 1rem;
+  min-width: 0;
+  width: 100%;
 }
 .player-phone-cell input {
   min-width: 8.5rem;
@@ -623,6 +645,7 @@ input.is-invalid {
   letter-spacing: 0.2em;
   font-weight: 700;
 }
+.checkbox-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -1262,14 +1285,152 @@ footer {
 #rules-body ul { margin: 0; padding-left: 1.2rem; color: var(--ink); }
 #rules-body li { margin: 6px 0; }
 
+@media (max-width: 720px) {
+  .wrap {
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  section { padding: 36px 0; }
+  .hero { padding-top: calc(28px + env(safe-area-inset-top, 0px)); }
+  .hero-inner { padding-bottom: 28px; }
+  .hero-sub { font-size: 0.98rem; }
+  .hero-chips { gap: 8px; margin-top: 16px; }
+  .chip { padding: 7px 12px; font-size: 0.8rem; }
+  .hero-cta {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-cta .btn,
+  .btn-register,
+  .btn-payid {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+  }
+  .deadline-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+  .deadline-copy p { max-width: none; }
+  .clock {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .clock-unit {
+    min-width: 0;
+    padding: 8px 4px;
+  }
+  .clock-num { font-size: 1.35rem; }
+  .bank-details > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .payid-actions { flex-direction: column; align-items: stretch; }
+  .payid-actions .btn { width: 100%; text-align: center; }
+  .submit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .submit-row .btn { width: 100%; text-align: center; }
+  .footer-grid { flex-direction: column; gap: 18px; }
+  .footer-club { max-width: none; }
+  .footer-club p { max-width: none; }
+  .footer-bottom { flex-direction: column; }
+  .modal-backdrop {
+    padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .modal-box,
+  .modal-box.rules-modal-box,
+  .result-card {
+    max-width: none;
+    width: 100%;
+    border-radius: 14px;
+  }
+  .result-overlay {
+    padding: 12px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+    align-items: flex-end;
+  }
+  .squad-table-wrap { overflow: visible; }
+  .squad-table thead { display: none; }
+  .squad-table,
+  .squad-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .squad-table tbody { counter-reset: player; }
+  .squad-table tr {
+    counter-increment: player;
+    display: grid;
+    gap: 10px;
+    background: #fff;
+    border: 1.5px solid rgba(21, 42, 87, 0.14);
+    border-radius: 14px;
+    padding: 12px;
+    margin: 0 0 12px;
+  }
+  .squad-table tr::before {
+    content: "Player " counter(player);
+    font-weight: 800;
+    color: var(--navy);
+    font-size: 0.92rem;
+  }
+  .squad-table td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 32%) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    width: 100%;
+  }
+  .squad-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+  }
+  .squad-table td.row-num { display: none; }
+  .squad-table td.mpl-cell {
+    justify-items: start;
+  }
+  .squad-table td.col-remove {
+    grid-template-columns: 1fr;
+    justify-items: end;
+  }
+  .squad-table td.col-remove::before { content: none; }
+  .remove-player {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.5rem;
+    text-decoration: none;
+  }
+  .player-phone-cell input,
+  .col-player-phone { width: auto; min-width: 0; }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="file"],
+  select,
+  textarea,
+  button.btn {
+    font-size: 16px;
+    max-width: 100%;
+  }
+  .receipt-preview { max-width: 100%; }
+}
+
 @media (max-width: 480px) {
-  .hero { padding-top: 36px; }
   .hero-brand {
     flex-direction: column;
     text-align: center;
   }
   .hero-brand-copy { text-align: center; }
-  .hero-presents { justify-content: center; }
+  .hero-presents { justify-content: center; letter-spacing: 0.08em; }
   .hero-stats { grid-template-columns: 1fr; }
   .stat {
     border-left: none;
@@ -1277,12 +1438,19 @@ footer {
   }
   .stat:first-child { border-top: none; }
   .btn { width: 100%; text-align: center; }
-  .hero-cta { width: 100%; }
-  .hero-cta .btn { flex: 1; }
-  .squad-table th.col-num,
-  .squad-table td.row-num { display: none; }
-  .clock-unit { min-width: 52px; padding: 8px 10px; }
-  .clock-num { font-size: 1.5rem; }
+  .squad-actions { flex-direction: column; align-items: flex-start; }
   .team-card-right .roster-count { display: none; }
   .manage-btn { width: auto !important; }
+  footer { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (max-width: 360px) {
+  .hero-title { font-size: 1.42rem; }
+  .clock-num { font-size: 1.15rem; }
+  .clock-word { font-size: 0.62rem; }
+  .chip { font-size: 0.74rem; padding: 6px 10px; }
+  .squad-table td {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }
