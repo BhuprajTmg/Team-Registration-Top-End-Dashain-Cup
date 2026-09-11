@@ -9,6 +9,9 @@ Here's what we received:
   Squad Size: {{ squad_size_display }}
   Players: {{ players_display_text }}
 
+Pay the ${{ entry_fee }} entry fee to PayID {{ payid_value }} ({{ payid_name }}), then upload your bank screenshot:
+{{ payment_url }}
+
 We'll be in touch with fixtures and further details closer to the tournament.
 
 Himalayan Hearts, Top End Spirits.

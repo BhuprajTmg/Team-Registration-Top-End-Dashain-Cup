@@ -28,4 +28,15 @@ urlpatterns = [
         views.TeamDeleteView.as_view(),
         name="delete_team",
     ),
+    path("pay/<str:token>/", views.PaymentView.as_view(), name="pay"),
+    path(
+        "api/pay/<str:token>/",
+        views.PaymentSubmitView.as_view(),
+        name="pay_submit",
+    ),
+    path(
+        "api/teams/<int:pk>/receipt/",
+        views.TeamReceiptView.as_view(),
+        name="team_receipt",
+    ),
 ]

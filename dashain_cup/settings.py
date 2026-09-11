@@ -230,6 +230,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CLUB_NAME = env_str("CLUB_NAME", "Gurkhali FC")
 
+# PayID entry-fee details shown on the public payment page. No payment API —
+# teams transfer the fee and upload a bank-statement screenshot.
+ENTRY_FEE_AUD = env_int("ENTRY_FEE_AUD", 370)
+PAYID_NAME = env_str("PAYID_NAME", "Gurkhali FC")
+PAYID_VALUE = env_str("PAYID_VALUE", "Gurkhalifc@gmail.com")
+PAYID_TYPE = env_str("PAYID_TYPE", "Email")
+PUBLIC_SITE_URL = env_str(
+    "PUBLIC_SITE_URL",
+    "https://gurkhalifc-dashain-cup.fly.dev",
+)
+
 EMAIL_HOST_USER = env_str("EMAIL_HOST_USER")
 # Gmail shows App Passwords in "abcd efgh ijkl mnop" form; the spaces are
 # display-only and must be stripped before authenticating.

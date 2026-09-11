@@ -37,6 +37,8 @@ def _display_context(registration):
         if not name:
             continue
         label = f"{name} (#{p.get('jersey')})" if p.get("jersey") else name
+        if p.get("gmail"):
+            label = f"{label} <{p.get('gmail')}>"
         if p.get("mpl"):
             label = f"{label} [Premier]"
         players_display.append(label)
@@ -49,6 +51,14 @@ def _display_context(registration):
         "players": players,
         "players_display": players_display,
         "players_display_text": ", ".join(players_display) if players_display else "Not listed",
+        "payment_url": (
+            settings.PUBLIC_SITE_URL.rstrip("/") + registration.payment_path()
+            if getattr(settings, "PUBLIC_SITE_URL", "")
+            else registration.payment_path()
+        ),
+        "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 370),
+        "payid_value": getattr(settings, "PAYID_VALUE", "Gurkhalifc@gmail.com"),
+        "payid_name": getattr(settings, "PAYID_NAME", "Gurkhali FC"),
     }
 
 

@@ -3,7 +3,7 @@ import re
 
 from django import forms
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -16,7 +16,7 @@ from .emails import (
     send_organiser_notification,
 )
 from .forms import TeamRegistrationForm, normalize_australian_phone, normalize_players
-from .logos import parse_logo_payload
+from .logos import parse_logo_payload, parse_receipt_payload
 from .models import TeamRegistration
 
 TOURNAMENT_TITLE = "Dashain Cup"
@@ -35,21 +35,26 @@ def _parse_json(request):
         )
 
 
+def _payment_page_context(team=None):
+    return {
+        "tournament": TOURNAMENT_NAME,
+        "tournament_title": TOURNAMENT_TITLE,
+        "tournament_year": TOURNAMENT_YEAR,
+        "division": DIVISION_NAME,
+        "entry_fee": settings.ENTRY_FEE_AUD,
+        "payid_name": settings.PAYID_NAME,
+        "payid_value": settings.PAYID_VALUE,
+        "payid_type": settings.PAYID_TYPE,
+        "team": team,
+    }
+
+
 @method_decorator(ensure_csrf_cookie, name="get")
 class IndexView(View):
     """Renders the landing page + registration form."""
 
     def get(self, request):
-        return render(
-            request,
-            "registration/index.html",
-            {
-                "tournament": TOURNAMENT_NAME,
-                "tournament_title": TOURNAMENT_TITLE,
-                "tournament_year": TOURNAMENT_YEAR,
-                "division": DIVISION_NAME,
-            },
-        )
+        return render(request, "registration/index.html", _payment_page_context())
 
 
 class TeamListView(View):
@@ -168,7 +173,8 @@ class RegisterView(View):
             email_queued = True
             message = (
                 f"Thanks, {registration.team_name}! Your registration is in. "
-                f"A confirmation email is being sent to {registration.gmail}."
+                f"A confirmation email is being sent to {registration.gmail}. "
+                f"Pay the ${settings.ENTRY_FEE_AUD} entry fee via PayID and upload your receipt."
             )
         else:
             registration.confirmation_email_sent = send_confirmation_email(registration)
@@ -180,7 +186,8 @@ class RegisterView(View):
             if registration.confirmation_email_sent:
                 message = (
                     f"Thanks, {registration.team_name}! Your registration is in. A confirmation "
-                    f"has been sent to {registration.gmail}."
+                    f"has been sent to {registration.gmail}. Pay the ${settings.ENTRY_FEE_AUD} "
+                    "entry fee via PayID and upload your receipt."
                 )
             elif not email_is_configured():
                 message = (
@@ -203,6 +210,7 @@ class RegisterView(View):
                 "confirmation_email_sent": registration.confirmation_email_sent,
                 "email_queued": email_queued,
                 "team": registration.public_dict(),
+                "paymentUrl": registration.payment_path(),
             }
         )
 
@@ -295,3 +303,74 @@ class TeamDeleteView(View):
 
         team.delete()
         return JsonResponse({"ok": True, "status": "ok"})
+
+
+@method_decorator(ensure_csrf_cookie, name="get")
+class PaymentView(View):
+    """PayID instructions plus bank-statement screenshot upload."""
+
+    def get(self, request, token):
+        team = get_object_or_404(TeamRegistration, payment_token=token)
+        return render(request, "registration/payment.html", _payment_page_context(team))
+
+
+class PaymentSubmitView(View):
+    def post(self, request, token):
+        team = get_object_or_404(TeamRegistration, payment_token=token)
+        payload, error = _parse_json(request)
+        if error:
+            return error
+
+        try:
+            receipt_bytes, receipt_type, receipt_name = parse_receipt_payload(
+                payload.get("receipt") or payload.get("screenshot") or payload.get("paymentReceipt"),
+                required=True,
+            )
+        except forms.ValidationError as exc:
+            message = exc.messages[0] if getattr(exc, "messages", None) else str(exc)
+            return JsonResponse(
+                {"status": "error", "ok": False, "message": message}, status=400
+            )
+
+        team.payment_receipt = receipt_bytes
+        team.payment_receipt_content_type = receipt_type
+        team.payment_receipt_filename = receipt_name
+        team.mark_payment_received()
+        team.save(
+            update_fields=[
+                "payment_receipt",
+                "payment_receipt_content_type",
+                "payment_receipt_filename",
+                "payment_received_at",
+            ]
+        )
+        return JsonResponse(
+            {
+                "status": "ok",
+                "ok": True,
+                "message": (
+                    f"Thanks, {team.team_name}. Your ${settings.ENTRY_FEE_AUD} PayID "
+                    "screenshot has been saved. The organisers will confirm the payment."
+                ),
+            }
+        )
+
+
+class TeamReceiptView(View):
+    """Staff-only bank-statement screenshot for the admin portal."""
+
+    def get(self, request, pk):
+        if not request.user.is_staff:
+            return HttpResponseForbidden("Staff login is required to view payment receipts.")
+        team = get_object_or_404(TeamRegistration, pk=pk)
+        if not team.has_payment_receipt:
+            return HttpResponseNotFound("No payment screenshot uploaded for this team.")
+        response = HttpResponse(
+            bytes(team.payment_receipt),
+            content_type=team.payment_receipt_content_type or "application/octet-stream",
+        )
+        if team.payment_receipt_filename:
+            response["Content-Disposition"] = (
+                f'inline; filename="{team.payment_receipt_filename}"'
+            )
+        return response

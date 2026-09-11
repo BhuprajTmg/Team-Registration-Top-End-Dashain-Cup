@@ -7,7 +7,7 @@
   "use strict";
 
   var MIN_PLAYERS = 8;
-  var MAX_PLAYERS = 11;
+  var MAX_PLAYERS = 12;
   var MAX_MPL = 3;
   var MIN_NON_PREMIER = 8;
   var DEADLINE = new Date("2026-09-27T23:59:59+09:30").getTime();
@@ -151,11 +151,15 @@
   setInterval(tickCountdown, 1000);
 
   /* ---- Result popup ---- */
-  function showResultPopup(type, title, message) {
+  var pendingPaymentUrl = null;
+
+  function showResultPopup(type, title, message, nextUrl) {
+    pendingPaymentUrl = nextUrl || null;
     resultOverlay.classList.remove("result-success", "result-error");
     resultOverlay.classList.add(type === "success" ? "result-success" : "result-error");
     resultTitle.textContent = title;
     resultMessage.innerHTML = message;
+    resultAction.textContent = pendingPaymentUrl ? "Continue to payment" : "Done";
     resultReturnFocus = document.activeElement;
     resultOverlay.classList.add("is-open");
     resultOverlay.setAttribute("aria-hidden", "false");
@@ -174,8 +178,20 @@
     }
   }
 
-  resultClose.addEventListener("click", closeResultPopup);
-  resultAction.addEventListener("click", closeResultPopup);
+  resultClose.addEventListener("click", function () {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+      return;
+    }
+    closeResultPopup();
+  });
+  resultAction.addEventListener("click", function () {
+    if (pendingPaymentUrl) {
+      window.location.href = pendingPaymentUrl;
+      return;
+    }
+    closeResultPopup();
+  });
   resultOverlay.addEventListener("click", function (e) {
     if (e.target === resultOverlay) closeResultPopup();
   });
@@ -189,10 +205,22 @@
     return squadBody.querySelectorAll('input[type="checkbox"]:checked').length;
   }
 
+  function updateMplAvailability() {
+    var checked = mplCount();
+    squadBody.querySelectorAll(".mpl-input").forEach(function (cb) {
+      cb.disabled = !cb.checked && checked >= MAX_MPL;
+    });
+    updateMplNote();
+  }
+
   function updateMplNote() {
     var checked = mplCount();
     mplNote.textContent = checked + " of " + MAX_MPL + " Premier Players selected";
     mplNote.classList.toggle("warn", checked > MAX_MPL);
+    if (checked >= MAX_MPL) {
+      mplNote.textContent =
+        MAX_MPL + " of " + MAX_MPL + " Premier Players selected — no more can be ticked";
+    }
   }
 
   function updatePlayerCount() {
@@ -200,7 +228,7 @@
     playerCountLabel.textContent = n;
     addPlayerBtn.disabled = n >= MAX_PLAYERS;
     addPlayerBtn.textContent =
-      n >= MAX_PLAYERS ? "Squad full (11 players)" : "+ Add another player";
+      n >= MAX_PLAYERS ? "Squad full (12 players)" : "+ Add another player";
   }
 
   function renumberRows() {
@@ -209,20 +237,25 @@
       var nameInput = tr.querySelector(".name-input");
       var mplInput = tr.querySelector(".mpl-input");
       nameInput.name = "player_" + (i + 1);
+      var jerseyInput = tr.querySelector(".jersey-input");
+      var gmailInput = tr.querySelector(".player-gmail-input");
       mplInput.name = "player_" + (i + 1) + "_mpl";
+      if (jerseyInput) jerseyInput.name = "player_" + (i + 1) + "_number";
+      if (gmailInput) gmailInput.name = "player_" + (i + 1) + "_gmail";
     });
   }
 
   function wireMplCheckbox(cb) {
     cb.addEventListener("change", function () {
-      if (mplCount() > MAX_MPL) {
+      if (this.checked && mplCount() > MAX_MPL) {
         this.checked = false;
       }
-      updateMplNote();
+      updateMplAvailability();
     });
   }
 
-  function addPlayerRow(prefillName, prefillMpl) {
+  function addPlayerRow(prefill) {
+    prefill = prefill || {};
     if (rowCount() >= MAX_PLAYERS) return;
     var idx = rowCount() + 1;
     var tr = document.createElement("tr");
@@ -231,14 +264,23 @@
       idx +
       "</td>" +
       '<td><input type="text" class="name-input" placeholder="Player full name" autocomplete="off" required value="' +
-      (prefillName ? escapeHtml(prefillName) : "") +
+      (prefill.name ? escapeHtml(prefill.name) : "") +
+      '"></td>' +
+      '<td class="jersey-cell"><input type="text" class="jersey-input" inputmode="numeric" maxlength="2" placeholder="No." autocomplete="off" required value="' +
+      (prefill.jersey ? escapeHtml(prefill.jersey) : "") +
+      '"></td>' +
+      '<td><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
+      (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
       '"></td>' +
       '<td class="mpl-cell"><input type="checkbox" class="mpl-input" value="Yes"' +
-      (prefillMpl ? " checked" : "") +
+      (prefill.mpl ? " checked" : "") +
       "></td>" +
       '<td class="col-remove"><button type="button" class="remove-player link-btn" aria-label="Remove player">&times;</button></td>';
     squadBody.appendChild(tr);
     wireMplCheckbox(tr.querySelector(".mpl-input"));
+    tr.querySelector(".jersey-input").addEventListener("input", function () {
+      this.value = this.value.replace(/\D/g, "").slice(0, 2);
+    });
     tr.querySelector(".remove-player").addEventListener("click", function () {
       if (rowCount() <= MIN_PLAYERS) {
         playersError.textContent =
@@ -249,11 +291,11 @@
       tr.remove();
       renumberRows();
       updatePlayerCount();
-      updateMplNote();
+      updateMplAvailability();
       playersError.style.display = "none";
     });
     updatePlayerCount();
-    updateMplNote();
+    updateMplAvailability();
   }
 
   addPlayerBtn.addEventListener("click", function () {
@@ -265,8 +307,12 @@
     var players = [];
     Array.prototype.slice.call(tbody.querySelectorAll("tr")).forEach(function (tr) {
       var name = tr.querySelector(".name-input").value.trim();
+      var jerseyEl = tr.querySelector(".jersey-input");
+      var gmailEl = tr.querySelector(".player-gmail-input");
+      var jersey = jerseyEl ? jerseyEl.value.trim() : "";
+      var gmail = gmailEl ? gmailEl.value.trim() : "";
       var mpl = tr.querySelector(".mpl-input").checked;
-      if (name) players.push({ name: name, jersey: null, mpl: mpl });
+      players.push({ name: name, jersey: jersey, gmail: gmail, mpl: mpl });
     });
     return players;
   }
@@ -316,7 +362,7 @@
       var el = document.getElementById(id);
       if (el) el.classList.remove("err");
     });
-    squadBody.querySelectorAll(".name-input").forEach(function (input) {
+    squadBody.querySelectorAll(".name-input, .jersey-input, .player-gmail-input").forEach(function (input) {
       input.classList.remove("is-invalid");
     });
     if (playersError) {
@@ -434,39 +480,72 @@
       missing.push("Confirmation / rules agreement");
     }
 
-    var emptyNameInputs = [];
-    squadBody.querySelectorAll(".name-input").forEach(function (input) {
-      if (!input.value.trim()) emptyNameInputs.push(input);
+    squadBody.querySelectorAll(".name-input, .jersey-input, .player-gmail-input").forEach(function (input) {
+      input.classList.remove("is-invalid");
     });
 
-    if (emptyNameInputs.length) {
+    var filledPlayers = [];
+    var jerseySeen = {};
+    var gmailSeen = {};
+    var squadIssues = [];
+    squadBody.querySelectorAll("tr").forEach(function (tr) {
+      var nameInput = tr.querySelector(".name-input");
+      var jerseyInput = tr.querySelector(".jersey-input");
+      var gmailInput = tr.querySelector(".player-gmail-input");
+      var name = nameInput.value.trim();
+      var jersey = jerseyInput.value.trim();
+      var playerGmail = gmailInput.value.trim().toLowerCase();
+      var mpl = tr.querySelector(".mpl-input").checked;
+      if (!name) {
+        nameInput.classList.add("is-invalid");
+        squadIssues.push("name");
+      }
+      if (!/^(?:[1-9]|[1-9][0-9])$/.test(jersey)) {
+        jerseyInput.classList.add("is-invalid");
+        squadIssues.push("number");
+      } else if (jerseySeen[jersey]) {
+        jerseyInput.classList.add("is-invalid");
+        squadIssues.push("duplicate-number");
+      } else {
+        jerseySeen[jersey] = true;
+      }
+      if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
+        gmailInput.classList.add("is-invalid");
+        squadIssues.push("gmail");
+      } else if (gmailSeen[playerGmail]) {
+        gmailInput.classList.add("is-invalid");
+        squadIssues.push("duplicate-gmail");
+      } else {
+        gmailSeen[playerGmail] = true;
+      }
+      if (name && /^(?:[1-9]|[1-9][0-9])$/.test(jersey) && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
+        filledPlayers.push({ name: name, jersey: jersey, gmail: playerGmail, mpl: mpl });
+      }
+    });
+
+    if (squadIssues.length) {
       setFieldError("field-squad");
-      emptyNameInputs.forEach(function (input) {
-        input.classList.add("is-invalid");
-      });
       if (playersError) {
         playersError.textContent =
-          "Every player row must have a full name. " +
-          emptyNameInputs.length +
-          " empty " +
-          (emptyNameInputs.length === 1 ? "row is" : "rows are") +
-          " still blank.";
+          "Every player needs a name, shirt number (1–99), and Gmail. Numbers and Gmails cannot be repeated.";
         playersError.style.display = "block";
       }
-      missing.push("Player names (every squad row must be filled)");
-    } else if (players.length < MIN_PLAYERS) {
+      missing.push("Player name, number and Gmail for every row");
+    } else if (filledPlayers.length < MIN_PLAYERS) {
       setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
           "Enter at least " +
           MIN_PLAYERS +
-          " player names (you have " +
-          players.length +
+          " complete players (you have " +
+          filledPlayers.length +
           ").";
         playersError.style.display = "block";
       }
-      missing.push("At least " + MIN_PLAYERS + " player names");
+      missing.push("At least " + MIN_PLAYERS + " complete players");
     }
+
+    players = filledPlayers;
 
     var mplSelected = players.filter(function (p) {
       return p.mpl;
@@ -601,7 +680,7 @@
         cachedLogoDataUrl = null;
         squadBody.innerHTML = "";
         for (var i = 0; i < MIN_PLAYERS; i++) addPlayerRow();
-        updateMplNote();
+        updateMplAvailability();
         if (result.team) {
           allTeams = allTeams.concat([result.team]);
           updateStats();
@@ -611,10 +690,12 @@
         showResultPopup(
           "success",
           "Registration Successful!",
-          result.message ||
+          (result.message ||
             "Thanks, <strong>" +
               escapeHtml(values.teamName) +
-              "</strong>! Your squad is on the list."
+              "</strong>! Your squad is on the list.") +
+            "<br><br>Pay the entry fee by PayID on the next page, then upload your bank screenshot.",
+          result.paymentUrl || null
         );
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
