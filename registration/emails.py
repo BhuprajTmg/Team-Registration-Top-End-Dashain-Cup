@@ -59,8 +59,9 @@ def _display_context(registration):
             else registration.payment_path()
         ),
         "entry_fee": getattr(settings, "ENTRY_FEE_AUD", 349),
-        "payid_value": getattr(settings, "PAYID_VALUE", "0000000000"),
-        "payid_name": getattr(settings, "PAYID_NAME", "Gurkhali FC"),
+        "bank_account_name": getattr(settings, "BANK_ACCOUNT_NAME", "Gurkhali FC"),
+        "bank_bsb": getattr(settings, "BANK_BSB", "015901"),
+        "bank_account_number": getattr(settings, "BANK_ACCOUNT_NUMBER", "812044156"),
         "has_payment_receipt": bool(getattr(registration, "has_payment_receipt", False)),
     }
 

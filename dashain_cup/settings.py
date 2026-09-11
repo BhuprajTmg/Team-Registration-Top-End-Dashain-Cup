@@ -230,12 +230,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CLUB_NAME = env_str("CLUB_NAME", "Gurkhali FC")
 
-# PayID entry-fee details shown on the public payment page. No payment API —
+# Bank account details shown on the registration form. No payment API —
 # teams transfer the fee and upload a bank-statement screenshot.
 ENTRY_FEE_AUD = env_int("ENTRY_FEE_AUD", 349)
-PAYID_NAME = env_str("PAYID_NAME", "Gurkhali FC")
-PAYID_VALUE = env_str("PAYID_VALUE", "0000000000")
-PAYID_TYPE = env_str("PAYID_TYPE", "Phone")
+BANK_ACCOUNT_NAME = env_str("BANK_ACCOUNT_NAME", "Gurkhali FC")
+BANK_BSB = env_str("BANK_BSB", "015901")
+BANK_ACCOUNT_NUMBER = env_str("BANK_ACCOUNT_NUMBER", "812044156")
+PAYID_NAME = env_str("PAYID_NAME", BANK_ACCOUNT_NAME)
+PAYID_VALUE = env_str("PAYID_VALUE", BANK_ACCOUNT_NUMBER)
+PAYID_TYPE = env_str("PAYID_TYPE", "Bank account")
 PUBLIC_SITE_URL = env_str(
     "PUBLIC_SITE_URL",
     "https://gurkhalifc-dashain-cup.fly.dev",

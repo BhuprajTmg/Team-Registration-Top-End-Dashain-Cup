@@ -41,7 +41,7 @@
 
     <div class="hero-cta">
       <a href="#register" class="btn btn-register">Register your team</a>
-      <a href="#pay" class="btn btn-payid">View PayID</a>
+      <a href="#pay" class="btn btn-payid">View payment</a>
     </div>
 
     <div class="hero-stats" aria-label="Registration snapshot">
@@ -111,7 +111,7 @@
       <div class="step">
         <div class="step-num">2</div>
         <h4>Pay the entry fee</h4>
-        <p>Pay <strong>${{ entry_fee }}</strong> to PayID <strong>{{ payid_value }}</strong> and upload your bank screenshot on this same form, then submit.</p>
+        <p>Pay <strong>${{ entry_fee }}</strong> to Gurkhali FC (BSB <strong>{{ bank_bsb }}</strong>, account <strong>{{ bank_account_number }}</strong>) and upload your bank screenshot on this same form, then submit.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
@@ -232,23 +232,13 @@
       </fieldset>
 
       <fieldset id="pay">
-        <legend>PayID payment <span class="req">*</span></legend>
-        <p class="form-note">Pay <strong>${{ entry_fee }}</strong> to the club PayID, then upload a screenshot of the transfer on this form before you submit.</p>
-        <div class="payid-card">
-          <h3>PayID details</h3>
-          <div class="payid-value" id="payid-value">{{ payid_value }}</div>
-          <p class="payid-meta">
-            Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
-          </p>
-          <div class="payid-actions">
-            <button type="button" class="btn" id="copy-payid">Copy PayID</button>
-            <span class="form-status" id="copy-status" hidden>Copied.</span>
-          </div>
-        </div>
+        <legend>Payment details <span class="req">*</span></legend>
+        <p class="form-note">Transfer <strong>${{ entry_fee }}</strong> to the club account below, then upload a screenshot of the transfer on this form before you submit.</p>
+        {% include "registration/_bank_details.html" %}
         <div id="field-receipt">
           <label for="receiptFile">Bank statement screenshot <span class="req">*</span></label>
           <input type="file" id="receiptFile" accept="image/png,image/jpeg,image/webp,image/gif" required />
-          <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the PayID transfer.</span>
+          <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the bank transfer to Gurkhali FC.</span>
           <span class="error-text" id="receipt-error">Upload a screenshot of your bank payment.</span>
           <img id="receipt-preview" class="receipt-preview" alt="Receipt preview" />
         </div>
@@ -256,7 +246,7 @@
 
       <div class="submit-row">
         <button type="submit" class="btn" id="submit-btn">Submit registration</button>
-        <span class="form-status">PayID, screenshot and squad details are submitted together.</span>
+        <span class="form-status">Payment details, screenshot and squad are submitted together.</span>
       </div>
       <div class="form-msg" id="form-msg"></div>
     </form>
@@ -596,6 +586,6 @@
   </section>
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=branding1"></script>
+<script src="{% static 'registration/js/script.js' %}?v=bank1"></script>
 </body>
 </html>

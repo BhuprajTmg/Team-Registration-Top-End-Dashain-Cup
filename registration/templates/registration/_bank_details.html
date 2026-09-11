@@ -1,0 +1,28 @@
+<div class="payid-card" id="bank-details"
+  data-copy="Account name: {{ bank_account_name }}
+BSB: {{ bank_bsb }}
+Account: {{ bank_account_number }}">
+  <h3>Payment details</h3>
+  <dl class="bank-details">
+    <div>
+      <dt>Account name</dt>
+      <dd>{{ bank_account_name }}</dd>
+    </div>
+    <div>
+      <dt>BSB</dt>
+      <dd id="bank-bsb">{{ bank_bsb }}</dd>
+    </div>
+    <div>
+      <dt>Account</dt>
+      <dd id="bank-account">{{ bank_account_number }}</dd>
+    </div>
+    <div>
+      <dt>Amount</dt>
+      <dd>${{ entry_fee }}.00 AUD</dd>
+    </div>
+  </dl>
+  <div class="payid-actions">
+    <button type="button" class="btn" id="copy-payid">Copy account details</button>
+    <span class="form-status" id="copy-status" hidden>Copied.</span>
+  </div>
+</div>

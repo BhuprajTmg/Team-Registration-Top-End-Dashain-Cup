@@ -31,11 +31,11 @@
 
               <p style="font-size:15px;line-height:1.6;">
                 {% if has_payment_receipt %}
-                We have your <strong>${{ entry_fee }}</strong> PayID screenshot on file
-                (PayID <strong>{{ payid_value }}</strong>, {{ payid_name }}).
+                We have your <strong>${{ entry_fee }}</strong> bank-transfer screenshot on file
+                ({{ bank_account_name }}, BSB {{ bank_bsb }}, account {{ bank_account_number }}).
                 {% else %}
-                Pay the <strong>${{ entry_fee }}</strong> entry fee to PayID <strong>{{ payid_value }}</strong>
-                ({{ payid_name }}), then upload your bank screenshot here:
+                Pay the <strong>${{ entry_fee }}</strong> entry fee to {{ bank_account_name }}
+                (BSB {{ bank_bsb }}, account {{ bank_account_number }}), then upload your bank screenshot here:
                 <a href="{{ payment_url }}">{{ payment_url }}</a>
                 {% endif %}
               </p>

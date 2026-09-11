@@ -46,11 +46,11 @@
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
   var copyPayid = document.getElementById("copy-payid");
-  var payidValue = document.getElementById("payid-value");
+  var bankDetails = document.getElementById("bank-details");
   var copyStatus = document.getElementById("copy-status");
-  if (copyPayid && payidValue) {
+  if (copyPayid && bankDetails) {
     copyPayid.addEventListener("click", function () {
-      var value = payidValue.textContent.trim();
+      var value = (bankDetails.getAttribute("data-copy") || "").trim();
       function copied() {
         if (copyStatus) {
           copyStatus.hidden = false;

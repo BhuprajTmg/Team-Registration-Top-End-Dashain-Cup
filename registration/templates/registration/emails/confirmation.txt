@@ -11,9 +11,9 @@ Here's what we received:
 {% include "registration/emails/_players_table.txt" %}
 
 {% if has_payment_receipt %}
-We have your ${{ entry_fee }} PayID screenshot on file (PayID {{ payid_value }}, {{ payid_name }}).
+We have your ${{ entry_fee }} bank-transfer screenshot on file ({{ bank_account_name }}, BSB {{ bank_bsb }}, account {{ bank_account_number }}).
 {% else %}
-Pay the ${{ entry_fee }} entry fee to PayID {{ payid_value }} ({{ payid_name }}), then upload your bank screenshot:
+Pay the ${{ entry_fee }} entry fee to {{ bank_account_name }} (BSB {{ bank_bsb }}, account {{ bank_account_number }}), then upload your bank screenshot:
 {{ payment_url }}
 {% endif %}
 

@@ -35,19 +35,9 @@
 <section class="form-section" id="pay">
   <div class="wrap">
     <h2 class="section-title">{{ team.team_name }}</h2>
-    <p class="section-intro">There is no card checkout. Transfer the fee to the club PayID, then upload the screenshot so organisers can match your payment.</p>
+    <p class="section-intro">There is no card checkout. Transfer the fee to the club bank account, then upload the screenshot so organisers can match your payment.</p>
 
-    <div class="payid-card">
-      <h3>PayID details</h3>
-      <div class="payid-value" id="payid-value">{{ payid_value }}</div>
-      <p class="payid-meta">
-        Name: {{ payid_name }} · Type: {{ payid_type }} · Amount: <strong>${{ entry_fee }}.00 AUD</strong>
-      </p>
-      <div class="payid-actions">
-        <button type="button" class="btn" id="copy-payid">Copy PayID</button>
-        <span class="form-status" id="copy-status" hidden>Copied.</span>
-      </div>
-    </div>
+    {% include "registration/_bank_details.html" %}
 
     {% if team.has_payment_receipt %}
     <p class="form-note">A payment screenshot is already on file for this team. You can replace it below if needed.</p>
@@ -60,7 +50,7 @@
         <legend>Bank statement screenshot <span class="req">*</span></legend>
         <label for="receiptFile">Upload screenshot</label>
         <input type="file" id="receiptFile" accept="image/png,image/jpeg,image/webp,image/gif" required />
-        <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the PayID transfer.</span>
+        <span class="hint">JPG, PNG, WEBP or GIF — max 2&nbsp;MB. Must show the bank transfer to Gurkhali FC.</span>
         <span class="error-text" id="receipt-error">Upload a screenshot of your bank payment.</span>
         <img id="receipt-preview" class="receipt-preview" alt="Receipt preview" />
       </fieldset>
@@ -102,6 +92,6 @@
   </div>
 </div>
 
-<script src="{% static 'registration/js/payment.js' %}?v=payid2"></script>
+<script src="{% static 'registration/js/payment.js' %}?v=bank1"></script>
 </body>
 </html>

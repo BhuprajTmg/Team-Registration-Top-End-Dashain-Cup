@@ -14,7 +14,7 @@
   var submitBtn = document.getElementById("pay-submit-btn");
   var copyBtn = document.getElementById("copy-payid");
   var copyStatus = document.getElementById("copy-status");
-  var payidValue = document.getElementById("payid-value");
+  var bankDetails = document.getElementById("bank-details");
   var resultOverlay = document.getElementById("resultOverlay");
   var resultTitle = document.getElementById("resultTitle");
   var resultMessage = document.getElementById("resultMessage");
@@ -50,9 +50,9 @@
     if (e.target === resultOverlay) closeResultPopup();
   });
 
-  if (copyBtn && payidValue) {
+  if (copyBtn && bankDetails) {
     copyBtn.addEventListener("click", function () {
-      var value = payidValue.textContent.trim();
+      var value = (bankDetails.getAttribute("data-copy") || "").trim();
       function copied() {
         if (copyStatus) {
           copyStatus.hidden = false;
