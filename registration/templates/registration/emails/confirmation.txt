@@ -1,6 +1,6 @@
-Kia ora {{ registration.manager_name }},
+Hello {{ registration.manager_name }},
 
-Thanks for registering "{{ registration.team_name }}" for the {{ registration.tournament }} ({{ registration.division }}).
+We have received your registration for "{{ registration.team_name }}" in the {{ registration.tournament }} ({{ registration.division }}). Once we have verified your details and payment, we will confirm your team's place in the tournament.
 
 Here's what we received:
   Team Name: {{ registration.team_name }}

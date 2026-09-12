@@ -8,15 +8,17 @@
           <tr>
             <td style="background:#0f2050;padding:24px;text-align:center;">
               <p style="margin:0;color:#e9b949;font-size:12px;letter-spacing:2px;text-transform:uppercase;">{{ club_name }}</p>
-              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;">Registration Confirmed</h1>
+              <h1 style="margin:6px 0 0;color:#ffffff;font-size:22px;">Registration Received</h1>
             </td>
           </tr>
           <tr>
             <td style="padding:28px 30px;color:#241c10;">
-              <p style="font-size:15px;line-height:1.6;">Kia ora {{ registration.manager_name }},</p>
+              <p style="font-size:15px;line-height:1.6;">Hello {{ registration.manager_name }},</p>
               <p style="font-size:15px;line-height:1.6;">
-                Thanks for registering <strong>&ldquo;{{ registration.team_name }}&rdquo;</strong> for the
-                <strong>{{ registration.tournament }}</strong> ({{ registration.division }}).
+                We have received your registration for <strong>&ldquo;{{ registration.team_name }}&rdquo;</strong>
+                in the <strong>{{ registration.tournament }}</strong> ({{ registration.division }}).
+                Once we have verified your details and payment, we will confirm your team's place
+                in the tournament.
               </p>
 
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;border-collapse:collapse;">

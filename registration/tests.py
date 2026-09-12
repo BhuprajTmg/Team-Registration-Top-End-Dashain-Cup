@@ -540,6 +540,10 @@ class RegistrationEndpointTests(TestCase):
         self.assertIn("Team Category", team_html)
         self.assertIn("Men&#x27;s", team_html)
         self.assertIn("Team Category", org_html)
+        self.assertIn("Hello Sita Gurung", team_html)
+        self.assertNotIn("Kia ora", team_html)
+        self.assertIn("We have received your registration", team_html)
+        self.assertIn("confirm your team's place", team_html)
 
     @override_settings(
         REGISTRATION_EMAIL_ASYNC=True,
