@@ -111,6 +111,7 @@ class RegisterView(View):
                     "DATABASE_URL from your .env (use SQLite), or check that your "
                     "Neon database is awake and reachable."
                 )
+                
             return JsonResponse(
                 {
                     "status": "error",
