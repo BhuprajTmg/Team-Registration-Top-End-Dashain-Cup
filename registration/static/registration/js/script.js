@@ -301,7 +301,7 @@
       '<td class="player-phone-cell" data-label="Player phone"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
       (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
-      '<td data-label="Player Gmail"><input type="text" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" value="' +
+      '<td data-label="Player Gmail"><input type="text" class="player-gmail-input" placeholder="playeremail@gmail.com" autocomplete="off" value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
       '"></td>' +
       '<td class="mpl-cell" data-label="Premier Player"><input type="checkbox" class="mpl-input" value="Yes"' +
