@@ -301,7 +301,7 @@
       '<td class="player-phone-cell" data-label="Player phone"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
       (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
-      '<td data-label="Player email (optional)"><input type="text" class="player-gmail-input" placeholder="player@email.com (optional)" autocomplete="off" value="' +
+      '<td data-label="Player Gmail"><input type="text" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
       '"></td>' +
       '<td class="mpl-cell" data-label="Premier Player"><input type="checkbox" class="mpl-input" value="Yes"' +
@@ -543,6 +543,10 @@
           "Enter a valid Australian phone number, for example 0400 123 456.";
       }
       missing.push("Valid Australian phone number");
+    }
+    if (!gmail) {
+      setFieldError("field-gmail");
+      missing.push("Team Gmail");
     }
     if (VALID_CATEGORIES.indexOf(category) === -1) {
       setFieldError("field-category");
@@ -898,6 +902,7 @@
 
   wireRequiredInput("teamName", "field-teamname");
   wireRequiredInput("captainName", "field-captain");
+  wireRequiredInput("gmail", "field-gmail");
   wireRequiredInput("teamCategory", "field-category");
   wirePhoneInput(document.getElementById("contactPhone"), "field-contact");
 
