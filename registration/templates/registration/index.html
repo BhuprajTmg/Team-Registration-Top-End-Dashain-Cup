@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="{% static 'registration/css/style.css' %}?v=optionalgmail1" />
+<link rel="stylesheet" href="{% static 'registration/css/style.css' %}?v=teamgmail1" />
 </head>
 <body>
 <a class="skip" href="#register">Skip to registration form</a>
@@ -103,7 +103,7 @@
       <div class="step">
         <div class="step-num">1</div>
         <h4>Submit your squad</h4>
-        <p>Fill in the form with your team name, contact person, optional email, and a squad of 8–12 players (max 3 Premier).</p>
+        <p>Fill in the form with your team name, contact person, Gmail, and a squad of 8–12 players (max 3 Premier).</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -127,7 +127,7 @@
       You need at least <strong>8 players</strong>. Premier Players are optional, and a squad
       may include no more than <strong>3 Premier Players</strong>
       (Darwin Men’s Premier League 2026 / Australia Cup).
-      If you add a team email, a confirmation is sent there.
+      A confirmation email is sent to your team Gmail.
     </p>
 
     <form id="team-form" novalidate
@@ -171,9 +171,10 @@
         </div>
         <div class="field-row single" id="field-gmail">
           <div>
-            <label for="gmail">Team email <span class="hint">(optional)</span></label>
-            <input type="text" id="gmail" name="gmail" placeholder="yourteam@gmail.com" autocomplete="email" />
-            <span class="hint">Optional. If you add an email, we'll send your registration confirmation there.</span>
+            <label for="gmail">Team Gmail <span class="req">*</span></label>
+            <input type="text" id="gmail" name="gmail" placeholder="yourteam@gmail.com" autocomplete="email" required />
+            <span class="hint">Used to send your registration confirmation.</span>
+            <span class="error-text">Enter a team email.</span>
           </div>
         </div>
       </fieldset>
@@ -205,7 +206,7 @@
               <th class="col-num">#</th>
               <th>Player name</th>
               <th class="col-player-phone">Player phone</th>
-              <th>Player email <span class="hint">(optional)</span></th>
+              <th>Player Gmail</th>
               <th class="col-mpl">Premier Player</th>
               <th class="col-remove"></th>
             </tr>
@@ -600,6 +601,6 @@
   </section> -->
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=optionalgmail1"></script>
+<script src="{% static 'registration/js/script.js' %}?v=teamgmail1"></script>
 </body>
 </html>

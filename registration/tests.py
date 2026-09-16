@@ -72,10 +72,12 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "Top_End_Dashain_Cup_Official_7_a_side_Rulebook.pdf")
         self.assertContains(response, "Premier Players")
         self.assertContains(response, "8 to 12")
-        self.assertContains(response, "Player email")
+        self.assertContains(response, "Player Gmail")
         self.assertContains(response, "Player phone")
+        self.assertContains(response, "Team Gmail")
         self.assertNotContains(response, "Latest entry")
         self.assertNotContains(response, "must end with @gmail.com")
+        self.assertNotContains(response, "player@email.com (optional)")
         self.assertContains(response, "Payment details")
         self.assertContains(response, "015901")
         self.assertContains(response, "812044156")
@@ -393,7 +395,7 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(TeamRegistration.objects.get().players), 12)
 
-    def test_team_email_is_optional_and_accepts_any_address(self):
+    def test_team_email_is_required_and_accepts_dotted_gmail(self):
         dotted = self.post_registration(
             gmail="anil.stha23.as@gmail.com", team_name="Dotted Mail FC"
         )
@@ -410,11 +412,8 @@ class RegistrationEndpointTests(TestCase):
 
         TeamRegistration.objects.all().delete()
         blank = self.post_registration(gmail="", team_name="No Mail FC")
-        self.assertEqual(blank.status_code, 200)
-        team = TeamRegistration.objects.get()
-        self.assertEqual(team.gmail, "")
-        self.assertFalse(team.confirmation_email_sent)
-        self.assertNotIn("sent to", blank.json()["message"])
+        self.assertEqual(blank.status_code, 400)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
 
     def test_phone_number_rejects_text_and_invalid_numbers(self):
         for invalid_phone in ("call me", "12345", "1400 123 456", "+61 ABC DEF"):
