@@ -5,7 +5,7 @@ A new team just registered for {{ registration.tournament }}.
   Captain: {{ registration.manager_name }}
   Home City / Suburb: {{ registration.home_city }}
   Phone: {{ registration.phone }}
-  Gmail: {{ registration.gmail }}
+  Gmail: {{ registration.gmail|default:"—" }}
   Squad Size: {{ squad_size_display }}
   Notes: {{ notes_display }}
   Submitted At: {{ registration.created_at }}

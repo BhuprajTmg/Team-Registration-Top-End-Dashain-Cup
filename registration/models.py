@@ -49,7 +49,7 @@ class TeamRegistration(models.Model):
     manager_name = models.CharField("Captain name", max_length=120)
     home_city = models.CharField("Home city / suburb", max_length=120, blank=True, default="")
     phone = models.CharField(max_length=40)
-    gmail = models.EmailField("Team Gmail address")
+    gmail = models.CharField("Team email", max_length=254, blank=True, default="")
     squad_size = models.CharField(
         max_length=10, choices=SQUAD_SIZE_CHOICES, blank=True
     )

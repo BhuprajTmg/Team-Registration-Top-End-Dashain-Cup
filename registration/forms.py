@@ -7,7 +7,6 @@ from .models import TeamRegistration
 MIN_PLAYERS = 8
 MAX_PLAYERS = 12
 MAX_PREMIER = 3
-GMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", re.IGNORECASE)
 
 
 def normalize_australian_phone(raw_phone):
@@ -35,7 +34,6 @@ def normalize_players(raw_players):
     players = []
     mpl_count = 0
     phones = []
-    gmails = []
     for item in raw_players:
         if not isinstance(item, dict):
             continue
@@ -54,22 +52,13 @@ def normalize_players(raw_players):
             raise forms.ValidationError(
                 "Every player needs a valid Australian phone number, numbers only."
             )
-        if not GMAIL_RE.fullmatch(gmail):
-            raise forms.ValidationError(
-                "Every player needs a Gmail address ending in @gmail.com."
-            )
         if phone in phones:
             raise forms.ValidationError(
                 "Each player needs their own phone number."
             )
-        if gmail in gmails:
-            raise forms.ValidationError(
-                "Each player needs their own Gmail address."
-            )
         if mpl:
             mpl_count += 1
         phones.append(phone)
-        gmails.append(gmail)
         players.append({"name": name, "phone": phone, "gmail": gmail, "mpl": mpl})
 
     if len(players) < MIN_PLAYERS:
@@ -136,18 +125,11 @@ class TeamRegistrationForm(forms.ModelForm):
             "Enter the contact person's name."
         )
         self.fields["phone"].error_messages["required"] = "Enter a contact number."
-        self.fields["gmail"].error_messages["required"] = (
-            "Enter a Gmail address ending in @gmail.com."
-        )
+        self.fields["gmail"].required = False
         self.fields["players"].error_messages["required"] = "Enter the full squad list."
 
     def clean_gmail(self):
-        gmail = self.cleaned_data["gmail"].strip().lower()
-        if not gmail.endswith("@gmail.com"):
-            raise forms.ValidationError(
-                "Please use a Gmail address (must end with @gmail.com) so we can send your confirmation."
-            )
-        return gmail
+        return (self.cleaned_data.get("gmail") or "").strip().lower()
 
     def clean_team_name(self):
         return self.cleaned_data["team_name"].strip()

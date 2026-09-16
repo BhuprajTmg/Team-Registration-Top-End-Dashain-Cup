@@ -83,7 +83,14 @@ def email_is_configured() -> bool:
 
 
 def send_confirmation_email(registration) -> bool:
-    """Auto-reply sent to the registering team's own Gmail address."""
+    """Auto-reply sent to the registering team's email, if they provided one."""
+    if not (registration.gmail or "").strip():
+        logger.info(
+            "Skipping confirmation email for %s — no team email was provided.",
+            registration.team_name,
+        )
+        return False
+
     if not email_is_configured():
         logger.warning(
             "Skipping confirmation email for %s — EMAIL_HOST_USER/EMAIL_HOST_PASSWORD not set.",

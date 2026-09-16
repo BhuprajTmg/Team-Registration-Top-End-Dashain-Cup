@@ -301,7 +301,7 @@
       '<td class="player-phone-cell" data-label="Player phone"><input type="tel" class="player-phone-input phone-demo-input" inputmode="numeric" maxlength="16" placeholder="04********" autocomplete="off" required value="' +
       (prefill.phone ? escapeHtml(prefill.phone) : "") +
       '"></td>' +
-      '<td data-label="Player Gmail"><input type="email" class="player-gmail-input" placeholder="player@gmail.com" autocomplete="off" required value="' +
+      '<td data-label="Player email (optional)"><input type="text" class="player-gmail-input" placeholder="player@email.com (optional)" autocomplete="off" value="' +
       (prefill.gmail ? escapeHtml(prefill.gmail) : "") +
       '"></td>' +
       '<td class="mpl-cell" data-label="Premier Player"><input type="checkbox" class="mpl-input" value="Yes"' +
@@ -544,13 +544,6 @@
       }
       missing.push("Valid Australian phone number");
     }
-    if (!gmail) {
-      setFieldError("field-gmail");
-      missing.push("Team Gmail");
-    } else if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(gmail)) {
-      setFieldError("field-gmail");
-      missing.push("Team Gmail must end with @gmail.com");
-    }
     if (VALID_CATEGORIES.indexOf(category) === -1) {
       setFieldError("field-category");
       missing.push("Team category (Female, Kids, Men's or Veteran)");
@@ -617,7 +610,6 @@
 
     var filledPlayers = [];
     var phoneSeen = {};
-    var gmailSeen = {};
     var squadIssues = [];
     squadBody.querySelectorAll("tr").forEach(function (tr) {
       var nameInput = tr.querySelector(".name-input");
@@ -625,7 +617,7 @@
       var gmailInput = tr.querySelector(".player-gmail-input");
       var name = nameInput.value.trim();
       var normalizedPhone = normalizeAustralianPhone(phoneInput.value);
-      var playerGmail = gmailInput.value.trim().toLowerCase();
+      var playerGmail = gmailInput ? gmailInput.value.trim().toLowerCase() : "";
       var mpl = tr.querySelector(".mpl-input").checked;
       if (!name) {
         nameInput.classList.add("is-invalid");
@@ -640,16 +632,7 @@
       } else {
         phoneSeen[normalizedPhone] = true;
       }
-      if (!/^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
-        gmailInput.classList.add("is-invalid");
-        squadIssues.push("gmail");
-      } else if (gmailSeen[playerGmail]) {
-        gmailInput.classList.add("is-invalid");
-        squadIssues.push("duplicate-gmail");
-      } else {
-        gmailSeen[playerGmail] = true;
-      }
-      if (name && normalizedPhone && /^[a-zA-Z0-9._%+-]+@gmail\.com$/i.test(playerGmail)) {
+      if (name && normalizedPhone) {
         filledPlayers.push({
           name: name,
           phone: normalizedPhone,
@@ -663,10 +646,10 @@
       setFieldError("field-squad");
       if (playersError) {
         playersError.textContent =
-          "Every player needs a name, Australian phone number (numbers only), and Gmail. Phone numbers and Gmails cannot be repeated.";
+          "Every player needs a name and an Australian phone number (numbers only). Phone numbers cannot be repeated.";
         playersError.style.display = "block";
       }
-      missing.push("Player name, phone number and Gmail for every row");
+      missing.push("Player name and phone number for every row");
     } else if (filledPlayers.length < MIN_PLAYERS) {
       setFieldError("field-squad");
       if (playersError) {
@@ -915,7 +898,6 @@
 
   wireRequiredInput("teamName", "field-teamname");
   wireRequiredInput("captainName", "field-captain");
-  wireRequiredInput("gmail", "field-gmail");
   wireRequiredInput("teamCategory", "field-category");
   wirePhoneInput(document.getElementById("contactPhone"), "field-contact");
 
@@ -1002,26 +984,13 @@
   function updateStats() {
     var teamsEl = document.getElementById("stat-teams");
     var playersEl = document.getElementById("stat-players");
-    var latestEl = document.getElementById("stat-latest");
-    if (!teamsEl || !playersEl || !latestEl) return;
+    if (!teamsEl || !playersEl) return;
 
     teamsEl.textContent = String(allTeams.length);
     var totalPlayers = allTeams.reduce(function (sum, t) {
       return sum + (t.players ? t.players.length : 0);
     }, 0);
     playersEl.textContent = String(totalPlayers);
-
-    var latestLabel = "–";
-    if (allTeams.length) {
-      var sorted = allTeams.slice().sort(function (a, b) {
-        return new Date(b.registeredAt) - new Date(a.registeredAt);
-      });
-      latestLabel =
-        sorted[0].teamName.length > 14
-          ? sorted[0].teamName.slice(0, 13) + "…"
-          : sorted[0].teamName;
-    }
-    latestEl.textContent = latestLabel;
   }
 
   function closeModal() {

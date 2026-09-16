@@ -197,9 +197,9 @@ img { max-width: 100%; display: block; }
 }
 .hero-stats {
   margin-top: 34px;
-  width: min(640px, 100%);
+  width: min(420px, 100%);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   background: var(--maroon-stat);
   border: 1px solid rgba(214, 164, 41, 0.18);
   border-radius: 14px;
@@ -218,10 +218,6 @@ img { max-width: 100%; display: block; }
   color: var(--gold);
   line-height: 1;
   word-break: break-word;
-}
-.stat-num.stat-latest {
-  font-size: clamp(1.05rem, 2.6vw, 1.45rem);
-  letter-spacing: 0.01em;
 }
 .stat-label {
   margin-top: 8px;
