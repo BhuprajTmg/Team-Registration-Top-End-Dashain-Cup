@@ -193,14 +193,23 @@ class RegisterView(View):
         registration.save()
 
         email_queued = False
+        screenshot_note = (
+            f"Your ${settings.ENTRY_FEE_AUD} PayID screenshot has been saved."
+        )
         if settings.REGISTRATION_EMAIL_ASYNC and email_is_configured():
             queue_registration_emails(registration.pk)
             email_queued = True
-            message = (
-                f"Thanks, {registration.team_name}! Your registration is in. "
-                f"A confirmation email is being sent to {registration.gmail}. "
-                f"Your ${settings.ENTRY_FEE_AUD} PayID screenshot has been saved."
-            )
+            if registration.gmail:
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration is in. "
+                    f"A confirmation email is being sent to {registration.gmail}. "
+                    f"{screenshot_note}"
+                )
+            else:
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration is in. "
+                    f"{screenshot_note}"
+                )
         else:
             registration.confirmation_email_sent = send_confirmation_email(registration)
             registration.organiser_notified = send_organiser_notification(registration)
@@ -211,8 +220,11 @@ class RegisterView(View):
             if registration.confirmation_email_sent:
                 message = (
                     f"Thanks, {registration.team_name}! Your registration is in. A confirmation "
-                    f"has been sent to {registration.gmail}. Your ${settings.ENTRY_FEE_AUD} "
-                    "PayID screenshot has been saved."
+                    f"has been sent to {registration.gmail}. {screenshot_note}"
+                )
+            elif not registration.gmail:
+                message = (
+                    f"Thanks, {registration.team_name}! Your registration is in. {screenshot_note}"
                 )
             elif not email_is_configured():
                 message = (

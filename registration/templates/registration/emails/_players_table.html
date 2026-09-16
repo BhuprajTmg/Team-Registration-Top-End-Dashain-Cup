@@ -14,7 +14,7 @@
     <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{{ forloop.counter }}</td>
     <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;font-weight:700;">{{ p.name }}</td>
     <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;white-space:nowrap;">{{ p.phone }}</td>
-    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{{ p.gmail }}</td>
+    <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{{ p.gmail|default:"—" }}</td>
     <td valign="top" style="padding:8px 6px;border-bottom:1px solid #ece3cf;color:#241c10;">{% if p.mpl %}Yes{% else %}—{% endif %}</td>
   </tr>
   {% empty %}

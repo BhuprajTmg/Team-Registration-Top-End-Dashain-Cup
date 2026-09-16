@@ -2,7 +2,7 @@ Squad:
 {% for p in players %}
   {{ forloop.counter }}. {{ p.name }}
       Phone: {{ p.phone }}
-      Gmail: {{ p.gmail }}
+      Gmail: {{ p.gmail|default:"—" }}
       Premier: {% if p.mpl %}Yes{% else %}No{% endif %}
 {% empty %}
   No players listed.

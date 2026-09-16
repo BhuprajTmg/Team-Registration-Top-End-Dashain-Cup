@@ -107,6 +107,8 @@ class TeamRegistrationAdmin(admin.ModelAdmin):
 
     @admin.display(description="Gmail", ordering="gmail")
     def gmail_link(self, obj):
+        if not obj.gmail:
+            return "—"
         return format_html('<a href="mailto:{}">{}</a>', obj.gmail, obj.gmail)
 
     @admin.display(description="Players")

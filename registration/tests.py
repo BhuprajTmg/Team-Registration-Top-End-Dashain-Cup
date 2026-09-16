@@ -68,12 +68,14 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "footer-logo")
         self.assertNotContains(response, "Registered teams")
         self.assertContains(response, "2nd Grace Dashain Cup")
-        self.assertContains(response, "2nd-grace-dashain-cup-2026-terms-and-conditions.pdf")
-        self.assertContains(response, "grace-dashain-cup-7aside-rulebook.pdf")
+        self.assertContains(response, "Tournament%20Terms%20and%20Condition.pdf")
+        self.assertContains(response, "Top_End_Dashain_Cup_Official_7_a_side_Rulebook.pdf")
         self.assertContains(response, "Premier Players")
         self.assertContains(response, "8 to 12")
-        self.assertContains(response, "Player Gmail")
+        self.assertContains(response, "Player email")
         self.assertContains(response, "Player phone")
+        self.assertNotContains(response, "Latest entry")
+        self.assertNotContains(response, "must end with @gmail.com")
         self.assertContains(response, "Payment details")
         self.assertContains(response, "015901")
         self.assertContains(response, "812044156")
@@ -84,10 +86,10 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, "gurkhalifc.official@gmail.com")
         self.assertContains(response, "$349")
         self.assertContains(response, 'id="agreeTermsCheck"')
-        self.assertContains(response, "Bank statement screenshot")
+        self.assertContains(response, "Payment screenshot")
         self.assertContains(response, 'id="teamCategory"')
-        self.assertContains(response, "Select Female, Kids, Men's or Veteran")
-        self.assertContains(response, 'value="female"')
+        self.assertContains(response, "Select Ladies, Kids, Men's or Veteran")
+        self.assertContains(response, 'value="Ladies"')
         self.assertContains(response, 'value="kids"')
         self.assertContains(response, 'value="veteran"')
         self.assertContains(response, 'value="mens"')
@@ -348,14 +350,21 @@ class RegistrationEndpointTests(TestCase):
         self.assertIn("12", response.json()["message"])
         self.assertEqual(TeamRegistration.objects.count(), 0)
 
-    def test_player_gmail_is_required(self):
+    def test_player_gmail_is_optional_and_need_not_be_unique(self):
         players = [
-            {"name": f"Player {i}", "phone": f"04000000{i:02d}"} for i in range(1, 9)
+            {
+                "name": f"Player {i}",
+                "phone": f"04000000{i:02d}",
+                "gmail": "anil.stha23.as@gmail.com" if i <= 2 else "",
+            }
+            for i in range(1, 9)
         ]
         response = self.post_registration(players=players)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn("Gmail", response.json()["message"])
-        self.assertEqual(TeamRegistration.objects.count(), 0)
+        self.assertEqual(response.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(team.players[0]["gmail"], "anil.stha23.as@gmail.com")
+        self.assertEqual(team.players[1]["gmail"], "anil.stha23.as@gmail.com")
+        self.assertEqual(team.players[2]["gmail"], "")
 
     def test_player_phone_rejects_text(self):
         players = [
@@ -384,12 +393,28 @@ class RegistrationEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(TeamRegistration.objects.get().players), 12)
 
-    def test_non_gmail_address_is_rejected(self):
-        response = self.post_registration(gmail="team@yahoo.com")
+    def test_team_email_is_optional_and_accepts_any_address(self):
+        dotted = self.post_registration(
+            gmail="anil.stha23.as@gmail.com", team_name="Dotted Mail FC"
+        )
+        self.assertEqual(dotted.status_code, 200)
+        self.assertEqual(
+            TeamRegistration.objects.get(team_name="Dotted Mail FC").gmail,
+            "anil.stha23.as@gmail.com",
+        )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json()["status"], "error")
-        self.assertEqual(TeamRegistration.objects.count(), 0)
+        TeamRegistration.objects.all().delete()
+        yahoo = self.post_registration(gmail="team@yahoo.com", team_name="Yahoo FC")
+        self.assertEqual(yahoo.status_code, 200)
+        self.assertEqual(TeamRegistration.objects.get().gmail, "team@yahoo.com")
+
+        TeamRegistration.objects.all().delete()
+        blank = self.post_registration(gmail="", team_name="No Mail FC")
+        self.assertEqual(blank.status_code, 200)
+        team = TeamRegistration.objects.get()
+        self.assertEqual(team.gmail, "")
+        self.assertFalse(team.confirmation_email_sent)
+        self.assertNotIn("sent to", blank.json()["message"])
 
     def test_phone_number_rejects_text_and_invalid_numbers(self):
         for invalid_phone in ("call me", "12345", "1400 123 456", "+61 ABC DEF"):
