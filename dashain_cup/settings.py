@@ -248,7 +248,22 @@ EMAIL_HOST_USER = env_str("EMAIL_HOST_USER")
 # Gmail shows App Passwords in "abcd efgh ijkl mnop" form; the spaces are
 # display-only and must be stripped before authenticating.
 EMAIL_HOST_PASSWORD = env_str("EMAIL_HOST_PASSWORD").replace(" ", "")
-ORGANISER_EMAIL = env_str("ORGANISER_EMAIL", EMAIL_HOST_USER)
+
+# Public club inbox. The old Gurkhalifc@gmail.com address no longer exists
+# and bounces; never send organiser alerts there even if a Fly secret still
+# has the retired value.
+CLUB_EMAIL = "gurkhalifc.official@gmail.com"
+RETIRED_CLUB_EMAILS = frozenset({"gurkhalifc@gmail.com"})
+
+
+def resolve_club_email(raw: str, fallback: str = "") -> str:
+    candidate = (raw or fallback or CLUB_EMAIL).strip()
+    if not candidate or candidate.lower() in RETIRED_CLUB_EMAILS:
+        return CLUB_EMAIL
+    return candidate
+
+
+ORGANISER_EMAIL = resolve_club_email(env_str("ORGANISER_EMAIL"), EMAIL_HOST_USER)
 
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

@@ -11,6 +11,10 @@ A new team just registered for {{ registration.tournament }}.
   Submitted At: {{ registration.created_at }}
 
 {% include "registration/emails/_players_table.txt" %}
-{% if has_payment_receipt %}
+{% if has_payment_receipt and has_logo %}
+The bank-transfer screenshot and team logo are attached to this email.
+{% elif has_payment_receipt %}
 The bank-transfer screenshot is attached to this email.
+{% elif has_logo %}
+The team logo is attached to this email.
 {% endif %}
