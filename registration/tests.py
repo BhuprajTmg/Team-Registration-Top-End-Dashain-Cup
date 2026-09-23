@@ -13,7 +13,7 @@ from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 
-from dashain_cup.settings import env_bool, env_int, env_str
+from dashain_cup.settings import env_bool, env_int, env_str, resolve_club_email
 
 from .models import TeamRegistration
 
@@ -544,11 +544,13 @@ class RegistrationEndpointTests(TestCase):
         org_mail = next(message for message in mail.outbox if "organiser@gmail.com" in message.to)
 
         self.assertEqual(team_mail.attachments, [])
-        self.assertEqual(len(org_mail.attachments), 1)
-        filename, content, mimetype = org_mail.attachments[0]
-        self.assertIn("payment-receipt", filename)
-        self.assertGreater(len(content), 10)
-        self.assertTrue(mimetype.startswith("image/"))
+        self.assertEqual(len(org_mail.attachments), 2)
+        filenames = {filename for filename, _content, _mimetype in org_mail.attachments}
+        self.assertTrue(any("payment-receipt" in name for name in filenames))
+        self.assertTrue(any("team-logo" in name for name in filenames))
+        for filename, content, mimetype in org_mail.attachments:
+            self.assertGreater(len(content), 10)
+            self.assertTrue(mimetype.startswith("image/"))
 
         team_html = dict(
             (content_type, body) for body, content_type in team_mail.alternatives
@@ -562,8 +564,9 @@ class RegistrationEndpointTests(TestCase):
             self.assertIn(">Gmail<", html)
             self.assertIn("Player 1", html)
             self.assertNotIn("Player 1 (0400000001) <player1@gmail.com>", html)
-        self.assertIn("screenshot is attached", org_html)
+        self.assertIn("screenshot and team logo are attached", org_html)
         self.assertNotIn("screenshot is attached", team_html)
+        self.assertNotIn("team logo are attached", team_html)
         self.assertIn("Team Category", team_html)
         self.assertIn("Men&#x27;s", team_html)
         self.assertIn("Team Category", org_html)
@@ -673,6 +676,13 @@ class EnvironmentParsingTests(TestCase):
     def test_app_password_spaces_are_stripped(self):
         """Google displays App Passwords as 'abcd efgh ijkl mnop'."""
         self.assertEqual(settings.EMAIL_HOST_PASSWORD, settings.EMAIL_HOST_PASSWORD.replace(" ", ""))
+
+    def test_retired_gurkhalifc_gmail_is_remapped_to_official(self):
+        official = "gurkhalifc.official@gmail.com"
+        self.assertEqual(resolve_club_email("Gurkhalifc@gmail.com"), official)
+        self.assertEqual(resolve_club_email("gurkhalifc@gmail.com"), official)
+        self.assertEqual(resolve_club_email(""), official)
+        self.assertEqual(resolve_club_email("committee@example.com"), "committee@example.com")
 
 
 class AdminTests(TestCase):

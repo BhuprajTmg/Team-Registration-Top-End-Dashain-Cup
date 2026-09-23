@@ -64,17 +64,36 @@ def _display_context(registration):
         "bank_bsb": getattr(settings, "BANK_BSB", "015901"),
         "bank_account_number": getattr(settings, "BANK_ACCOUNT_NUMBER", "812044156"),
         "has_payment_receipt": bool(getattr(registration, "has_payment_receipt", False)),
+        "has_logo": bool(getattr(registration, "has_logo", False)),
     }
+
+
+def _attach_binary(message, data, filename: str, content_type: str) -> None:
+    if not data:
+        return
+    message.attach(filename, bytes(data), content_type)
 
 
 def _attach_payment_receipt(message, registration) -> None:
     """Attach the PayID screenshot to the organiser email only."""
-    receipt = getattr(registration, "payment_receipt", None)
-    if not receipt:
+    _attach_binary(
+        message,
+        getattr(registration, "payment_receipt", None),
+        registration.payment_receipt_filename or "payment-receipt.jpg",
+        registration.payment_receipt_content_type or "image/jpeg",
+    )
+
+
+def _attach_team_logo(message, registration) -> None:
+    """Attach the team's uploaded logo to the organiser email."""
+    if not getattr(registration, "has_logo", False):
         return
-    filename = registration.payment_receipt_filename or "payment-receipt.jpg"
-    content_type = registration.payment_receipt_content_type or "image/jpeg"
-    message.attach(filename, bytes(receipt), content_type)
+    _attach_binary(
+        message,
+        getattr(registration, "logo", None),
+        registration.logo_filename or "team-logo.png",
+        registration.logo_content_type or "image/png",
+    )
 
 
 def email_is_configured() -> bool:
@@ -149,6 +168,7 @@ def send_organiser_notification(registration) -> bool:
     )
     message.attach_alternative(html_body, "text/html")
     _attach_payment_receipt(message, registration)
+    _attach_team_logo(message, registration)
 
     try:
         message.send(fail_silently=False)

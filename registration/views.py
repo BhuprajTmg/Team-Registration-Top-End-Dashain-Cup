@@ -23,7 +23,7 @@ TOURNAMENT_TITLE = "2nd Grace Dashain Cup"
 TOURNAMENT_YEAR = "2026"
 TOURNAMENT_NAME = f"{TOURNAMENT_TITLE} {TOURNAMENT_YEAR}"
 DIVISION_NAME = "Open 7A-side football competition"
-CLUB_DISPLAY_EMAIL = "gurkhalifc.official@gmail.com"
+CLUB_DISPLAY_EMAIL = getattr(settings, "CLUB_EMAIL", "gurkhalifc.official@gmail.com")
 
 
 def _parse_json(request):
