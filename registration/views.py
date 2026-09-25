@@ -18,6 +18,7 @@ from .emails import (
 from .forms import TeamRegistrationForm, normalize_australian_phone, normalize_players
 from .logos import parse_logo_payload, parse_receipt_payload
 from .models import TeamRegistration
+from .window import CLOSED_MESSAGE, registration_closes_at, registration_is_open
 
 TOURNAMENT_TITLE = "2nd Grace Dashain Cup"
 TOURNAMENT_YEAR = "2026"
@@ -48,6 +49,9 @@ def _payment_page_context(team=None):
         "bank_account_number": settings.BANK_ACCOUNT_NUMBER,
         "club_email": CLUB_DISPLAY_EMAIL,
         "team": team,
+        "registration_open": registration_is_open(),
+        "registration_closes_at": registration_closes_at().isoformat(),
+        "registration_closed_message": CLOSED_MESSAGE,
     }
 
 
@@ -122,6 +126,12 @@ class RegisterView(View):
             )
 
     def _register(self, request):
+        if not registration_is_open():
+            return JsonResponse(
+                {"status": "error", "ok": False, "message": CLOSED_MESSAGE},
+                status=403,
+            )
+
         payload, error = _parse_json(request)
         if error:
             return error

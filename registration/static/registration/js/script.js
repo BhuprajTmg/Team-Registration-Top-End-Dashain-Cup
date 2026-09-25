@@ -9,8 +9,11 @@
   var MIN_PLAYERS = 8;
   var MAX_PLAYERS = 12;
   var MAX_MPL = 3;
-  var DEADLINE = new Date("2026-09-25T23:59:59+09:30").getTime();
+  var DEFAULT_DEADLINE = "2026-09-25T12:00:00+09:30";
   var VALID_CATEGORIES = ["female", "kids", "mens", "veteran"];
+  var CLOSED_MESSAGE =
+    "Registration is closed. New team entries are no longer being accepted. " +
+    "If you already registered, the organisers have your entry.";
   var allTeams = [];
   var cachedLogoDataUrl = null;
   var cachedReceiptDataUrl = null;
@@ -42,6 +45,38 @@
 
   var registerUrl = form.dataset.registerUrl;
   var teamsUrl = form.dataset.teamsUrl;
+  var parsedDeadline = new Date(form.dataset.registrationClosesAt || DEFAULT_DEADLINE).getTime();
+  var DEADLINE = isNaN(parsedDeadline)
+    ? new Date(DEFAULT_DEADLINE).getTime()
+    : parsedDeadline;
+
+  function registrationOpenFlag() {
+    return String(form.dataset.registrationOpen || "").toLowerCase();
+  }
+
+  function isRegistrationOpen() {
+    var flag = registrationOpenFlag();
+    if (flag === "true") return true;
+    if (flag === "false") return false;
+    return Date.now() < DEADLINE;
+  }
+
+  function lockRegistrationForm() {
+    form.classList.add("is-closed");
+    form.setAttribute("aria-disabled", "true");
+    form.dataset.registrationOpen = "false";
+    form.querySelectorAll("fieldset:not(#pay)").forEach(function (fieldset) {
+      fieldset.disabled = true;
+    });
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Registration closed";
+    }
+    var status = form.querySelector(".form-status");
+    if (status) status.textContent = "New registrations are closed.";
+    var deadlineEl = document.querySelector(".deadline");
+    if (deadlineEl) deadlineEl.classList.add("is-closed");
+  }
 
   var yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
@@ -172,6 +207,12 @@
     set("cd-hours", h);
     set("cd-mins", m);
     set("cd-secs", s);
+    if (diff === 0 && registrationOpenFlag() !== "true") {
+      lockRegistrationForm();
+    }
+  }
+  if (!isRegistrationOpen()) {
+    lockRegistrationForm();
   }
   tickCountdown();
   setInterval(tickCountdown, 1000);
@@ -734,6 +775,12 @@
   async function handleRegistrationSubmit(e) {
     if (e) e.preventDefault();
 
+    if (!isRegistrationOpen()) {
+      lockRegistrationForm();
+      showResultPopup("error", "Registration closed", CLOSED_MESSAGE);
+      return;
+    }
+
     var validation = validateRegistrationForm();
     if (!validation.valid) {
       scrollToFirstError();
@@ -874,8 +921,12 @@
           "Could not reach the registration server. Make sure runserver is running and check the terminal for errors."
       );
     } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Submit registration";
+      if (isRegistrationOpen()) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit registration";
+      } else {
+        lockRegistrationForm();
+      }
     }
   }
 

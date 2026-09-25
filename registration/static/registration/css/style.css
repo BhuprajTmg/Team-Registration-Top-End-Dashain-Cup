@@ -355,6 +355,24 @@ img { max-width: 100%; display: block; }
   font-size: 0.95rem;
   max-width: 44ch;
 }
+.deadline-copy a { color: var(--gold); }
+.deadline.is-closed .deadline-copy h3 { color: var(--gold); }
+.closed-note {
+  background: #f8e8e8;
+  border: 1px solid #d9a0a0;
+  color: #6b1d1d;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+#team-form.is-closed fieldset:not(#pay) {
+  opacity: 0.55;
+  pointer-events: none;
+}
+#team-form.is-closed #submit-btn {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .clock { display: flex; gap: 12px; flex-wrap: wrap; }
 .clock-unit {
   text-align: center;

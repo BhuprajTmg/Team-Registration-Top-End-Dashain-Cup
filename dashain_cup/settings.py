@@ -300,6 +300,21 @@ DEFAULT_FROM_EMAIL = env_str(
     f"{CLUB_NAME} <{EMAIL_HOST_USER}>" if EMAIL_HOST_USER else f"{CLUB_NAME} <no-reply@example.com>",
 )
 
+# Registration window. After this Darwin time the public form and API reject
+# new teams. Leave REGISTRATION_OPEN blank to follow the deadline.
+# Set REGISTRATION_OPEN=true to reopen without changing code.
+# Set REGISTRATION_OPEN=false to close immediately.
+REGISTRATION_CLOSES_AT = env_str(
+    "REGISTRATION_CLOSES_AT",
+    "2026-09-25T12:00:00+09:30",
+)
+# Tests keep the form open unless a test closes it. Production follows
+# REGISTRATION_OPEN (blank = use the deadline).
+REGISTRATION_OPEN_OVERRIDE = env_str(
+    "REGISTRATION_OPEN",
+    "true" if RUNNING_TESTS else "",
+)
+
 
 # ---------------------------------------------------------------------------
 # Logging — make sure email failures are always visible in the server output

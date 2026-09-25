@@ -16,6 +16,7 @@ from django.urls import reverse
 from dashain_cup.settings import env_bool, env_int, env_str, resolve_club_email
 
 from .models import TeamRegistration
+from .window import CLOSED_MESSAGE, registration_closes_at, registration_is_open
 
 SAMPLE_PLAYERS = [
     {
@@ -81,6 +82,8 @@ class RegistrationEndpointTests(TestCase):
         js = Path(settings.BASE_DIR, "registration/static/registration/js/script.js").read_text()
         self.assertIn('placeholder="playeremail@gmail.com"', js)
         self.assertNotIn("player@email.com (optional)", js)
+        self.assertIn("2026-09-25T12:00:00+09:30", js)
+        self.assertNotIn("2026-09-25T23:59:59+09:30", js)
         self.assertContains(response, "Payment details")
         self.assertContains(response, "015901")
         self.assertContains(response, "812044156")
@@ -99,6 +102,10 @@ class RegistrationEndpointTests(TestCase):
         self.assertContains(response, 'value="veteran"')
         self.assertContains(response, 'value="mens"')
         self.assertContains(response, "Friday, 25 September 2026")
+        self.assertContains(response, "12:00 noon")
+        self.assertContains(response, 'data-registration-open="true"')
+        self.assertContains(response, "2026-09-25T12:00:00")
+        self.assertContains(response, "Submit registration")
         self.assertNotContains(response, "27 September 2026")
         html = response.content.decode()
         self.assertLess(
@@ -647,6 +654,78 @@ class RegistrationEndpointTests(TestCase):
         team = TeamRegistration.objects.get()
         self.assertFalse(team.confirmation_email_sent)
         self.assertFalse(team.organiser_notified)
+
+
+class RegistrationWindowTests(TestCase):
+    def post_registration(self, **overrides):
+        payload = {**VALID_PAYLOAD, **overrides}
+        return self.client.post(
+            reverse("registration:register"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+    def test_landing_page_shows_closed_copy_after_deadline(self):
+        with override_settings(REGISTRATION_OPEN_OVERRIDE="false"):
+            response = self.client.get(reverse("registration:index"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Registration closed")
+        self.assertContains(response, "Registration is closed")
+        self.assertContains(response, CLOSED_MESSAGE)
+        self.assertContains(response, 'data-registration-open="false"')
+        self.assertContains(response, 'id="registration-closed-note"')
+        self.assertContains(response, "New registrations are closed.")
+        self.assertContains(response, 'disabled')
+        html = response.content.decode()
+        submit_idx = html.find('id="submit-btn"')
+        self.assertNotEqual(submit_idx, -1)
+        self.assertIn("disabled", html[submit_idx : submit_idx + 80])
+
+    def test_register_api_rejects_new_teams_when_closed(self):
+        with override_settings(REGISTRATION_OPEN_OVERRIDE="false"):
+            response = self.post_registration()
+        self.assertEqual(response.status_code, 403)
+        body = response.json()
+        self.assertFalse(body["ok"])
+        self.assertEqual(body["message"], CLOSED_MESSAGE)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_override_true_reopens_after_deadline(self):
+        with override_settings(
+            REGISTRATION_OPEN_OVERRIDE="true",
+            REGISTRATION_CLOSES_AT="2020-01-01T00:00:00+09:30",
+        ):
+            self.assertTrue(registration_is_open())
+            response = self.post_registration()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "ok")
+        self.assertEqual(TeamRegistration.objects.count(), 1)
+
+    def test_override_false_closes_before_deadline(self):
+        with override_settings(
+            REGISTRATION_OPEN_OVERRIDE="false",
+            REGISTRATION_CLOSES_AT="2099-12-31T12:00:00+09:30",
+        ):
+            self.assertFalse(registration_is_open())
+            response = self.post_registration()
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(TeamRegistration.objects.count(), 0)
+
+    def test_clock_follows_close_time_when_override_is_blank(self):
+        with override_settings(
+            REGISTRATION_OPEN_OVERRIDE="",
+            REGISTRATION_CLOSES_AT="2020-01-01T12:00:00+09:30",
+        ):
+            self.assertFalse(registration_is_open())
+            self.assertEqual(
+                registration_closes_at().isoformat(),
+                "2020-01-01T12:00:00+09:30",
+            )
+        with override_settings(
+            REGISTRATION_OPEN_OVERRIDE="",
+            REGISTRATION_CLOSES_AT="2099-12-31T12:00:00+09:30",
+        ):
+            self.assertTrue(registration_is_open())
 
 
 class EnvironmentParsingTests(TestCase):

@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="{% static 'registration/css/style.css' %}?v=playeremail1" />
+<link rel="stylesheet" href="{% static 'registration/css/style.css' %}?v=closed2" />
 </head>
 <body>
 <a class="skip" href="#register">Skip to registration form</a>
@@ -41,7 +41,11 @@
     </div>
 
     <div class="hero-cta">
+      {% if registration_open %}
       <a href="#register" class="btn btn-register">Register your team</a>
+      {% else %}
+      <a href="#register" class="btn btn-register">Registration closed</a>
+      {% endif %}
       <a href="#pay" class="btn btn-payid">View payment</a>
     </div>
 
@@ -80,11 +84,16 @@
   </div>
 </section>
 
-<div class="deadline">
+<div class="deadline{% if not registration_open %} is-closed{% endif %}">
   <div class="wrap deadline-inner">
     <div class="deadline-copy">
+      {% if registration_open %}
       <h3>Registration closes soon</h3>
-      <p>Get your squad list in by <strong>Friday, 25 September 2026</strong> so fixtures and player eligibility can be sorted before the day.</p>
+      <p>Get your squad list in by <strong>12:00 noon, Friday, 25 September 2026</strong> (Darwin time) so fixtures and player eligibility can be sorted before the day.</p>
+      {% else %}
+      <h3>Registration is closed</h3>
+      <p>New team entries for the 2nd Grace Dashain Cup 2026 are no longer being accepted. Existing registrations are kept. Contact <a href="mailto:{{ club_email }}">{{ club_email }}</a> if you need help.</p>
+      {% endif %}
     </div>
     <div class="clock" id="countdown" aria-live="polite">
       <div class="clock-unit"><div class="clock-num" id="cd-days">00</div><div class="clock-word">Days</div></div>
@@ -122,6 +131,9 @@
 <section class="form-section" id="register">
   <div class="wrap">
     <h2 class="section-title">Team registration form</h2>
+    {% if not registration_open %}
+    <p class="section-intro closed-note" id="registration-closed-note">{{ registration_closed_message }}</p>
+    {% endif %}
     <p class="section-intro">
       Squads may include a maximum of <strong>12 players</strong> for a matchday list.
       You need at least <strong>8 players</strong>. Premier Players are optional, and a squad
@@ -132,10 +144,13 @@
 
     <form id="team-form" novalidate
       data-register-url="{% url 'registration:register' %}"
-      data-teams-url="{% url 'registration:teams' %}">
+      data-teams-url="{% url 'registration:teams' %}"
+      data-registration-open="{% if registration_open %}true{% else %}false{% endif %}"
+      data-registration-closes-at="{{ registration_closes_at }}"
+      {% if not registration_open %}class="is-closed" aria-disabled="true"{% endif %}>
       {% csrf_token %}
 
-      <fieldset>
+      <fieldset{% if not registration_open %} disabled{% endif %}>
         <legend>Team details</legend>
         <div class="field-row">
           <div id="field-teamname">
@@ -152,7 +167,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset{% if not registration_open %} disabled{% endif %}>
         <legend>Contact person</legend>
         <div class="field-row">
           <div id="field-captain">
@@ -179,7 +194,7 @@
         </div>
       </fieldset>
 
-      <fieldset id="field-category">
+      <fieldset id="field-category"{% if not registration_open %} disabled{% endif %}>
         <legend>Team category <span class="req">*</span></legend>
         <div class="field-row single">
           <div>
@@ -197,7 +212,7 @@
         </div>
       </fieldset>
 
-      <fieldset id="field-squad">
+      <fieldset id="field-squad"{% if not registration_open %} disabled{% endif %}>
         <legend>Squad list <span class="hint">— 8 to 12 players, max 3 Premier Players</span></legend>
         <div class="squad-table-wrap">
         <table class="squad-table" id="squadTable">
@@ -222,7 +237,7 @@
         <div class="players-error" id="players-error">You need at least 8 players. Premier Players are optional (maximum 3).</div>
       </fieldset>
 
-      <fieldset>
+      <fieldset{% if not registration_open %} disabled{% endif %}>
         <legend>Confirmation</legend>
         <div id="field-agree">
           <div class="checkbox-row">
@@ -260,8 +275,16 @@
       </fieldset>
 
       <div class="submit-row">
-        <button type="submit" class="btn" id="submit-btn">Submit registration</button>
-        <span class="form-status">Payment details, screenshot and squad are submitted together.</span>
+        <button type="submit" class="btn" id="submit-btn"{% if not registration_open %} disabled{% endif %}>
+          {% if registration_open %}Submit registration{% else %}Registration closed{% endif %}
+        </button>
+        <span class="form-status">
+          {% if registration_open %}
+          Payment details, screenshot and squad are submitted together.
+          {% else %}
+          New registrations are closed.
+          {% endif %}
+        </span>
       </div>
       <div class="form-msg" id="form-msg"></div>
     </form>
@@ -601,6 +624,6 @@
   </section> -->
 </template>
 
-<script src="{% static 'registration/js/script.js' %}?v=playeremail1"></script>
+<script src="{% static 'registration/js/script.js' %}?v=closed2"></script>
 </body>
 </html>
